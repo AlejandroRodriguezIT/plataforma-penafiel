@@ -12,12 +12,62 @@ import io
 import base64
 from pathlib import Path
 import logging
+import pymysql
+from config import Config
 
 logger = logging.getLogger(__name__)
 
 # Configurar estilo de matplotlib
 plt.style.use('default')
 sns.set_palette("deep")
+
+
+def get_db_connection():
+    """
+    Crea una conexión a la base de datos MySQL
+
+    Returns:
+        Conexión a MySQL
+    """
+    try:
+        connection = pymysql.connect(
+            host=Config.DB_HOST,
+            user=Config.DB_USER,
+            password=Config.DB_PASSWORD,
+            database=Config.DB_NAME,
+            charset='utf8mb4',
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        return connection
+    except Exception as e:
+        logger.error(f"Error conectando a la base de datos: {str(e)}")
+        raise
+
+
+def load_from_database(table_name: str) -> pd.DataFrame:
+    """
+    Carga datos desde una tabla de MySQL
+
+    Args:
+        table_name: Nombre de la tabla
+
+    Returns:
+        DataFrame con los datos
+    """
+    try:
+        connection = get_db_connection()
+        query = f"SELECT * FROM {table_name}"
+        df = pd.read_sql(query, connection)
+        connection.close()
+
+        # Limpiar nombres de columnas
+        df.columns = df.columns.str.strip()
+
+        logger.info(f"Datos cargados exitosamente desde la tabla {table_name}")
+        return df
+    except Exception as e:
+        logger.error(f"Error cargando desde tabla {table_name}: {str(e)}")
+        raise
 
 
 def safe_div(a: pd.Series, b: pd.Series) -> pd.Series:
@@ -58,7 +108,7 @@ def to_numeric(s: pd.Series) -> pd.Series:
 
 def load_excel_data(file_path: Path, sheet_name: str = None) -> pd.DataFrame:
     """
-    Carga datos desde un archivo Excel
+    Carga datos desde un archivo Excel o desde la base de datos como fallback
 
     Args:
         file_path: Ruta al archivo Excel
@@ -67,6 +117,15 @@ def load_excel_data(file_path: Path, sheet_name: str = None) -> pd.DataFrame:
     Returns:
         DataFrame con los datos
     """
+    # Mapeo de archivos a tablas de base de datos
+    file_to_table_map = {
+        'Entrenos_Completo.xlsx': 'Datos_Fisicos_Entreno',
+        'Partidos_Completo.xlsx': 'Datos_Fisicos_Partido',
+        'promedios_equipos.xlsx': 'Datos_Estadisticos_Promedio',
+        'Resultados.xlsx': 'Datos_Resultados',
+    }
+
+    # Intentar cargar desde archivo local primero
     try:
         if sheet_name:
             df = pd.read_excel(file_path, sheet_name=sheet_name)
@@ -76,8 +135,29 @@ def load_excel_data(file_path: Path, sheet_name: str = None) -> pd.DataFrame:
         # Limpiar nombres de columnas
         df.columns = df.columns.str.strip()
 
-        logger.info(f"Datos cargados exitosamente desde {file_path}")
+        logger.info(f"Datos cargados exitosamente desde archivo {file_path}")
         return df
+    except FileNotFoundError:
+        # Si el archivo no existe, intentar cargar desde la base de datos
+        logger.warning(f"Archivo {file_path} no encontrado. Intentando cargar desde base de datos...")
+
+        # Obtener nombre del archivo
+        file_name = Path(file_path).name
+
+        # Buscar tabla correspondiente
+        table_name = file_to_table_map.get(file_name)
+
+        if table_name:
+            try:
+                df = load_from_database(table_name)
+                logger.info(f"Datos cargados desde base de datos (tabla {table_name})")
+                return df
+            except Exception as db_error:
+                logger.error(f"Error cargando desde base de datos: {str(db_error)}")
+                raise FileNotFoundError(f"No se pudo cargar {file_path} ni desde archivo ni desde base de datos")
+        else:
+            logger.error(f"No hay mapeo de tabla para el archivo {file_name}")
+            raise FileNotFoundError(f"Archivo {file_path} no encontrado y sin mapeo a tabla de BD")
     except Exception as e:
         logger.error(f"Error cargando {file_path}: {str(e)}")
         raise
