@@ -65,10 +65,21 @@ def load_from_database(table_name: str) -> pd.DataFrame:
             if col in date_columns:
                 df[col] = pd.to_datetime(df[col], errors='coerce')
 
+        # Procesar columna Jornada de manera especial (puede venir como "Jornada 1", "J1", etc.)
+        if 'Jornada' in df.columns:
+            # Mostrar valores únicos para debug
+            logger.info(f"Valores únicos en Jornada antes de conversión: {df['Jornada'].unique()[:10]}")
+
+            # Intentar extraer solo números de la columna Jornada
+            df['Jornada'] = df['Jornada'].astype(str).str.extract(r'(\d+)', expand=False)
+            df['Jornada'] = pd.to_numeric(df['Jornada'], errors='coerce')
+
+            logger.info(f"Valores únicos en Jornada después de conversión: {df['Jornada'].unique()[:10]}")
+
         # Convertir columnas numéricas comunes
         numeric_columns = [
             'Minutos_jugados', 'Distancia_total', 'Distancia_HSR', 'Distancia_Sprint',
-            'Velocidad_Maxima', 'Jornada', 'id', 'team_xgShot', 'team_goal', 'team_shot',
+            'Velocidad_Maxima', 'id', 'team_xgShot', 'team_goal', 'team_shot',
             'team_shotSuccess', 'team_possession', 'team_ppda', 'opp_xgShot', 'opp_goal',
             'opp_shot', 'opp_shotSuccess'
         ]
