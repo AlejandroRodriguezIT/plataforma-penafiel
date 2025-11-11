@@ -12,7 +12,7 @@ import io
 import base64
 from pathlib import Path
 import logging
-import pymysql
+from sqlalchemy import create_engine
 from config import Config
 
 logger = logging.getLogger(__name__)
@@ -22,31 +22,28 @@ plt.style.use('default')
 sns.set_palette("deep")
 
 
-def get_db_connection():
+def get_db_engine():
     """
-    Crea una conexión a la base de datos MySQL
+    Crea un engine de SQLAlchemy para conectar a MySQL
 
     Returns:
-        Conexión a MySQL
+        Engine de SQLAlchemy
     """
     try:
-        connection = pymysql.connect(
-            host=Config.DB_HOST,
-            user=Config.DB_USER,
-            password=Config.DB_PASSWORD,
-            database=Config.DB_NAME,
-            charset='utf8mb4',
-            cursorclass=pymysql.cursors.DictCursor
-        )
-        return connection
+        # Crear URL de conexión
+        connection_url = f"mysql+pymysql://{Config.DB_USER}:{Config.DB_PASSWORD}@{Config.DB_HOST}/{Config.DB_NAME}?charset=utf8mb4"
+
+        # Crear engine
+        engine = create_engine(connection_url, pool_pre_ping=True)
+        return engine
     except Exception as e:
-        logger.error(f"Error conectando a la base de datos: {str(e)}")
+        logger.error(f"Error creando engine de base de datos: {str(e)}")
         raise
 
 
 def load_from_database(table_name: str) -> pd.DataFrame:
     """
-    Carga datos desde una tabla de MySQL
+    Carga datos desde una tabla de MySQL con conversión automática de tipos
 
     Args:
         table_name: Nombre de la tabla
@@ -55,13 +52,30 @@ def load_from_database(table_name: str) -> pd.DataFrame:
         DataFrame con los datos
     """
     try:
-        connection = get_db_connection()
+        engine = get_db_engine()
         query = f"SELECT * FROM {table_name}"
-        df = pd.read_sql(query, connection)
-        connection.close()
+        df = pd.read_sql(query, engine)
 
         # Limpiar nombres de columnas
         df.columns = df.columns.str.strip()
+
+        # Convertir columnas de fecha si existen
+        date_columns = ['Fecha', 'fecha', 'Date', 'date']
+        for col in df.columns:
+            if col in date_columns:
+                df[col] = pd.to_datetime(df[col], errors='coerce')
+
+        # Convertir columnas numéricas comunes
+        numeric_columns = [
+            'Minutos_jugados', 'Distancia_total', 'Distancia_HSR', 'Distancia_Sprint',
+            'Velocidad_Maxima', 'Jornada', 'id', 'team_xgShot', 'team_goal', 'team_shot',
+            'team_shotSuccess', 'team_possession', 'team_ppda', 'opp_xgShot', 'opp_goal',
+            'opp_shot', 'opp_shotSuccess'
+        ]
+
+        for col in df.columns:
+            if col in numeric_columns:
+                df[col] = pd.to_numeric(df[col], errors='coerce')
 
         logger.info(f"Datos cargados exitosamente desde la tabla {table_name}")
         return df
