@@ -2,9 +2,9 @@
 Flask==3.0.0
 Flask-CORS==4.0.0
 
-# Análisis de datos
-pandas==2.1.4
-numpy==1.26.2
+# Análisis de datos (versiones optimizadas para Render)
+pandas==2.2.0
+numpy==1.26.4
 openpyxl==3.1.2
 
 # Visualización
@@ -14,13 +14,10 @@ plotly==5.18.0
 
 # Utilidades
 python-dateutil==2.8.2
-pytz==2023.3
+pytz==2024.1
 
 # Programación de tareas
 APScheduler==3.10.4
-
-# Manejo de archivos y paths
-pathlib2==2.3.7
 
 # Logging mejorado
 colorlog==6.8.0
@@ -28,10 +25,5 @@ colorlog==6.8.0
 # Variables de entorno
 python-dotenv==1.0.0
 
-# Testing (opcional)
-pytest==7.4.3
-pytest-flask==1.3.0
-
-# Producción (opcional)
+# Producción
 gunicorn==21.2.0
-waitress==2.1.2
