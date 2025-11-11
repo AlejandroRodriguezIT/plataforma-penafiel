@@ -23,13 +23,19 @@ from modules.estilo_juego import EstiloJuegoModule
 from scheduler import scheduler
 
 # Configurar logging
+# Crear directorio de logs si no existe
+log_handlers = [logging.StreamHandler()]
+try:
+    Path('logs').mkdir(parents=True, exist_ok=True)
+    log_handlers.append(logging.FileHandler('logs/app.log'))
+except (OSError, PermissionError):
+    # Si no se puede crear el directorio (ej: en producción), solo usar StreamHandler
+    pass
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('logs/app.log'),
-        logging.StreamHandler()
-    ]
+    handlers=log_handlers
 )
 logger = logging.getLogger(__name__)
 
