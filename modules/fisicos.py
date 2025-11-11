@@ -710,8 +710,17 @@ class FisicosModule:
                 if pd.isna(jornada):
                     continue
 
-                # Extraer número de jornada (ej: "Semana_J1" -> "J1")
-                jornada_num = jornada.replace('Semana_', '')
+                # Extraer número de jornada
+                # Puede venir como número (1, 2, 3...) o como string ("Semana_1", "J1", etc.)
+                if isinstance(jornada, (int, float, np.integer, np.floating)):
+                    jornada_num = int(jornada)
+                else:
+                    # Es string, intentar extraer número
+                    jornada_num = str(jornada).replace('Semana_', '').replace('J', '').strip()
+                    try:
+                        jornada_num = int(jornada_num)
+                    except ValueError:
+                        jornada_num = str(jornada)
 
                 # Buscar rival en datos de partidos (merge por fecha)
                 df_jornada_entreno = df_entreno[df_entreno['Jornada'] == jornada].copy()
