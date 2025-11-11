@@ -1,0 +1,378 @@
+{% extends "base.html" %}
+
+{% block title %}Control de Microciclos - FC Penafiel{% endblock %}
+
+{% block content %}
+<div class="fisicos-page">
+    <div class="tabs">
+        <div class="tab active" data-target="microciclo-equipo">
+            <i class="fas fa-users"></i> Microciclo Equipo
+        </div>
+        <div class="tab" data-target="microciclo-jugadores">
+            <i class="fas fa-user"></i> Microciclo Jugadores
+        </div>
+    </div>
+
+    <!-- Tab: Microciclo Equipo -->
+    <div id="microciclo-equipo" class="tab-content active">
+        <div class="chart-container">
+            <div class="chart-header">
+                <div style="display: flex; align-items: flex-end; gap: 2rem; flex-wrap: wrap;">
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <label for="microcicloSelector" style="font-size: 0.9rem; color: #666; font-weight: 600;">Seleccionar Microciclo:</label>
+                        <select id="microcicloSelector" class="form-control" onchange="loadMicrocicloEquipo()" style="min-width: 350px;">
+                            <option value="">Cargando microciclos...</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <label style="font-size: 0.9rem; color: #666; font-weight: 600;">Tipo de Distancia:</label>
+                        <div class="btn-group" role="group" style="display: flex; gap: 0.5rem;">
+                            <button type="button" class="btn-distancia active" data-tipo="Distancia_total" onclick="selectTipoDistancia('Distancia_total')">
+                                Distancia Total
+                            </button>
+                            <button type="button" class="btn-distancia" data-tipo="Distancia_HSR" onclick="selectTipoDistancia('Distancia_HSR')">
+                                Distancia HSR
+                            </button>
+                            <button type="button" class="btn-distancia" data-tipo="Distancia_Sprint" onclick="selectTipoDistancia('Distancia_Sprint')">
+                                Distancia Sprint
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-body">
+                <div id="microcicloChart" class="chart-placeholder"></div>
+
+                <!-- Tabla de validación -->
+                <div style="margin-top: 2rem;">
+                    <h3 style="color: #333; font-size: 1.2rem; margin-bottom: 1rem;">
+                        <i class="fas fa-table"></i> Datos del Microciclo
+                    </h3>
+                    <div id="microcicloTable" style="overflow-x: auto;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab: Microciclo Jugadores -->
+    <div id="microciclo-jugadores" class="tab-content">
+        <div class="chart-container">
+            <div class="chart-header">
+                <h2><i class="fas fa-user"></i> Análisis Individual por Jugador</h2>
+            </div>
+            <div class="chart-body">
+                <div class="chart-placeholder">
+                    <p>Próximamente...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<style>
+    .charts-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .chart-item {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .chart-placeholder {
+        min-height: 400px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #999;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+    }
+
+    /* Tabla de validación */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    table thead {
+        background: linear-gradient(135deg, #DC143C 0%, #b81030 100%);
+        color: white;
+    }
+
+    table th {
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    table td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #eee;
+    }
+
+    table tbody tr:hover {
+        background: #f8f9fa;
+    }
+
+    table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Badges para tipo de sesión */
+    .badge-partido {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        background: linear-gradient(135deg, #DC143C 0%, #b81030 100%);
+        color: white;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    .badge-entrenamiento {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+        color: white;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    /* Destacar filas de partido */
+    .partido-row {
+        background: rgba(220, 20, 60, 0.05) !important;
+        font-weight: 500;
+    }
+
+    .partido-row:hover {
+        background: rgba(220, 20, 60, 0.1) !important;
+    }
+
+    /* Botones de tipo de distancia */
+    .btn-distancia {
+        padding: 0.5rem 1rem;
+        border: 2px solid #DC143C;
+        background: white;
+        color: #DC143C;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+    }
+
+    .btn-distancia:hover {
+        background: rgba(220, 20, 60, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .btn-distancia.active {
+        background: linear-gradient(135deg, #DC143C 0%, #b81030 100%);
+        color: white;
+        box-shadow: 0 4px 12px rgba(220, 20, 60, 0.3);
+    }
+</style>
+
+<script>
+    console.log('[MICROCICLOS] Página de microciclos cargada');
+
+    // Variable global para tipo de distancia seleccionado
+    let tipoDistanciaSeleccionado = 'Distancia_total';
+
+    // Función para seleccionar tipo de distancia
+    function selectTipoDistancia(tipo) {
+        tipoDistanciaSeleccionado = tipo;
+
+        // Actualizar botones activos
+        document.querySelectorAll('.btn-distancia').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.querySelector(`.btn-distancia[data-tipo="${tipo}"]`).classList.add('active');
+
+        // Recargar el gráfico
+        loadMicrocicloEquipo();
+    }
+
+    // Cargar lista de microciclos al inicio
+    document.addEventListener('DOMContentLoaded', function() {
+        loadMicrociclosList();
+    });
+
+    async function loadMicrociclosList() {
+        console.log('[MICROCICLOS] Cargando lista de microciclos...');
+        try {
+            const response = await API.Microciclos.getMicrociclos();
+            console.log('[MICROCICLOS] Microciclos recibidos:', response);
+
+            if (response.status === 'success' && response.data) {
+                const selector = document.getElementById('microcicloSelector');
+                selector.innerHTML = '';
+
+                // Agregar microciclos
+                response.data.microciclos.forEach(m => {
+                    const option = document.createElement('option');
+                    option.value = m.jornada;
+                    option.textContent = m.label;
+                    selector.appendChild(option);
+                });
+
+                // Cargar el primer microciclo por defecto
+                if (response.data.microciclos.length > 0) {
+                    selector.value = response.data.microciclos[0].jornada;
+                    loadMicrocicloEquipo();
+                }
+            }
+        } catch (error) {
+            console.error('[MICROCICLOS] Error al cargar microciclos:', error);
+            showAlert('Error al cargar lista de microciclos: ' + error.message, 'error');
+        }
+    }
+
+    async function loadMicrocicloEquipo() {
+        console.log('[MICROCICLOS] Cargando datos del microciclo...');
+        const jornada = document.getElementById('microcicloSelector').value;
+        const tipoDistancia = tipoDistanciaSeleccionado;
+
+        if (!jornada) {
+            return;
+        }
+
+        try {
+            showLoader();
+            const response = await API.Microciclos.getMicrocicloEquipo(jornada, tipoDistancia);
+            console.log('[MICROCICLOS] Datos recibidos:', response);
+
+            if (response.status === 'success' && response.data) {
+                const data = response.data;
+
+                // Crear array de colores: rojo para partidos, azul para entrenamientos
+                const colores = data.tipos ? data.tipos.map(tipo =>
+                    tipo === 'partido' ? '#DC143C' : '#1976D2'
+                ) : Array(data.situaciones.length).fill('#DC143C');
+
+                // Crear gráfico de barras
+                const trace = {
+                    x: data.situaciones,
+                    y: data.distancias,
+                    type: 'bar',
+                    marker: {
+                        color: colores,
+                        line: {
+                            color: 'white',
+                            width: 1
+                        }
+                    },
+                    text: data.distancias.map(d => Math.round(d).toLocaleString('es-ES') + ' m'),
+                    textposition: 'outside',
+                    textfont: {
+                        size: 12,
+                        color: '#333'
+                    }
+                };
+
+                const layout = {
+                    title: {
+                        text: `<b>${data.tipo_distancia_label} - ${data.microciclo_label}</b>`,
+                        x: 0.5,
+                        xanchor: 'center',
+                        font: {
+                            size: 18,
+                            color: '#1a1a1a',
+                            family: 'Arial Black'
+                        }
+                    },
+                    xaxis: {
+                        title: {
+                            text: '<b>Situación</b>',
+                            font: { size: 13 }
+                        },
+                        showgrid: false
+                    },
+                    yaxis: {
+                        title: {
+                            text: '<b>Distancia (metros)</b>',
+                            font: { size: 13 }
+                        },
+                        showgrid: true,
+                        gridcolor: 'rgba(0,0,0,0.1)'
+                    },
+                    plot_bgcolor: 'white',
+                    paper_bgcolor: 'white',
+                    height: 500,
+                    margin: { t: 80, b: 80, l: 80, r: 80 }
+                };
+
+                const config = {
+                    displayModeBar: false,
+                    displaylogo: false,
+                    modeBarButtonsToRemove: ['lasso2d', 'select2d']
+                };
+
+                Plotly.newPlot('microcicloChart', [trace], layout, config);
+
+                // Crear tabla de validación
+                createValidationTable(data);
+
+                console.log('[MICROCICLOS] Gráfico y tabla creados exitosamente');
+            } else {
+                throw new Error(response.message || 'Error al cargar datos del microciclo');
+            }
+        } catch (error) {
+            console.error('[MICROCICLOS] Error:', error);
+            document.getElementById('microcicloChart').innerHTML =
+                `<div class="chart-placeholder">
+                    <p style="color: var(--color-danger);">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Error al cargar datos del microciclo
+                    </p>
+                </div>`;
+            showAlert('Error al cargar datos del microciclo: ' + error.message, 'error');
+        } finally {
+            hideLoader();
+        }
+    }
+
+    function createValidationTable(data) {
+        let tableHTML = '<table><thead><tr>';
+        tableHTML += '<th>Fecha</th>';
+        tableHTML += '<th>Situación</th>';
+        tableHTML += '<th>Tipo</th>';
+        tableHTML += '<th>Distancia (m)</th>';
+        tableHTML += '<th>Número de Registros</th>';
+        tableHTML += '</tr></thead><tbody>';
+
+        for (let i = 0; i < data.situaciones.length; i++) {
+            const esPartido = data.tipos && data.tipos[i] === 'partido';
+            const rowClass = esPartido ? 'partido-row' : '';
+
+            tableHTML += `<tr class="${rowClass}">`;
+            tableHTML += `<td>${data.fechas ? data.fechas[i] : '-'}</td>`;
+            tableHTML += `<td><strong>${data.situaciones[i]}</strong></td>`;
+            tableHTML += `<td>${esPartido ? '<span class="badge-partido">Partido</span>' : '<span class="badge-entrenamiento">Entrenamiento</span>'}</td>`;
+            tableHTML += `<td>${Math.round(data.distancias[i]).toLocaleString('es-ES')} m</td>`;
+            tableHTML += `<td>${data.num_registros[i]}</td>`;
+            tableHTML += '</tr>';
+        }
+
+        tableHTML += '</tbody></table>';
+        document.getElementById('microcicloTable').innerHTML = tableHTML;
+    }
+</script>
+{% endblock %}

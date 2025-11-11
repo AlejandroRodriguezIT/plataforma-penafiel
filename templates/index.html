@@ -1,0 +1,419 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio - FC Penafiel{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Ocultar elementos del base.html en la página de inicio */
+    .page-container {
+        display: block !important;
+    }
+
+    .page-container > .sidebar-nav {
+        display: none !important;
+    }
+
+    .main-page-content {
+        margin-left: 0 !important;
+        padding: 0 !important;
+    }
+
+    .content-wrapper {
+        background: transparent !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        max-width: 100% !important;
+    }
+
+    .page-header {
+        display: none !important;
+    }
+
+    .home-container {
+        display: flex;
+        min-height: 100vh;
+        width: 100%;
+    }
+
+    /* Navegación lateral */
+    .sidebar-nav {
+        width: 250px;
+        background: linear-gradient(180deg, #1a1a1a 0%, #000000 100%);
+        padding: 2rem 0;
+        box-shadow: 4px 0 15px rgba(0, 0, 0, 0.5);
+        position: fixed;
+        height: 100vh;
+        left: 0;
+        top: 0;
+        z-index: 100;
+    }
+
+    .sidebar-header {
+        text-align: center;
+        padding: 0 1.5rem 2rem;
+        border-bottom: 2px solid #DC143C;
+        margin-bottom: 2rem;
+    }
+
+    .sidebar-logo {
+        width: 100px;
+        height: auto;
+        margin-bottom: 1rem;
+    }
+
+    .sidebar-header h2 {
+        color: #DC143C;
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin: 0;
+        letter-spacing: 2px;
+    }
+
+    .sidebar-subtitle {
+        color: #fff;
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+        opacity: 0.9;
+    }
+
+    .sidebar-menu {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 0 1rem;
+    }
+
+    .sidebar-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 1.5rem;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        font-weight: 500;
+        letter-spacing: 1px;
+    }
+
+    .sidebar-item i {
+        font-size: 1.2rem;
+        width: 24px;
+        text-align: center;
+    }
+
+    .sidebar-item:hover {
+        background: rgba(220, 20, 60, 0.2);
+        transform: translateX(5px);
+    }
+
+    .sidebar-item.active {
+        background: linear-gradient(90deg, #DC143C 0%, #b81030 100%);
+        box-shadow: 0 4px 10px rgba(220, 20, 60, 0.3);
+    }
+
+    /* Contenido principal */
+    .main-home-content {
+        margin-left: 250px;
+        flex: 1;
+        padding: 2rem;
+        overflow-y: auto;
+    }
+
+    .welcome-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .welcome-title {
+        color: #DC143C;
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+        text-align: center;
+    }
+
+    .welcome-description {
+        color: #1a1a1a;
+        font-size: 1.1rem;
+        line-height: 1.8;
+        text-align: center;
+        margin-bottom: 1.5rem;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .sections-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    @media (max-width: 992px) {
+        .sections-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .section-card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .section-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(220, 20, 60, 0.2);
+        border-color: #DC143C;
+    }
+
+    .section-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .section-icon i {
+        font-size: 2rem;
+        color: #fff;
+    }
+
+    .section-card h3 {
+        color: #DC143C;
+        font-size: 1.2rem;
+        font-weight: bold;
+        margin-bottom: 0.3rem;
+        text-align: center;
+    }
+
+    .section-card .section-subtitle {
+        color: #666;
+        font-size: 0.85rem;
+        line-height: 1.4;
+        margin-bottom: 1rem;
+        text-align: center;
+        font-style: italic;
+    }
+
+    .section-subsections {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .subsection-link {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.5rem 0.75rem;
+        background: #f8f9fa;
+        border-radius: 6px;
+        text-decoration: none;
+        color: #333;
+        transition: all 0.3s ease;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .subsection-link:hover {
+        background: rgba(220, 20, 60, 0.1);
+        color: #DC143C;
+        transform: translateX(5px);
+    }
+
+    .subsection-link i.fa-arrow-right {
+        font-size: 0.9rem;
+        color: #DC143C;
+    }
+
+    .subsection-link .subsection-icon {
+        margin-right: 0.75rem;
+        color: #DC143C;
+        font-size: 1rem;
+    }
+
+    .section-card-single {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 280px;
+    }
+
+    .section-card-single .subsection-link {
+        width: 100%;
+        max-width: 300px;
+        justify-content: center;
+        font-size: 1.1rem;
+        padding: 1rem 1.5rem;
+    }
+
+    .footer-info {
+        text-align: center;
+        padding-top: 1rem;
+        border-top: 2px solid #eee;
+        margin-top: 1rem;
+    }
+
+    .footer-info p {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .footer-info i {
+        color: #DC143C;
+        margin-right: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="home-container">
+    <!-- Navegación vertical izquierda -->
+    <div class="sidebar-nav">
+        <div class="sidebar-header">
+            <img src="{{ url_for('static', filename='images/escudo.png') }}" alt="FC Penafiel" class="sidebar-logo">
+            <h2>FC PENAFIEL</h2>
+            <p class="sidebar-subtitle">Plataforma de Análisis</p>
+        </div>
+
+        <nav class="sidebar-menu">
+            <a href="{{ url_for('index') }}" class="sidebar-item active">
+                <i class="fas fa-home"></i>
+                <span>INICIO</span>
+            </a>
+            <a href="{{ url_for('fisicos_view') }}" class="sidebar-item">
+                <i class="fas fa-running"></i>
+                <span>CONTROL CONDICIONAL</span>
+            </a>
+            <a href="{{ url_for('rankings_view') }}" class="sidebar-item">
+                <i class="fas fa-trophy"></i>
+                <span>CONTROL DE RENDIMIENTO</span>
+            </a>
+            <a href="{{ url_for('medico_view') }}" class="sidebar-item">
+                <i class="fas fa-user-md"></i>
+                <span>CONTROL ESTADO FUNCIONAL</span>
+            </a>
+            <a href="{{ url_for('ficha_jugador_view') }}" class="sidebar-item">
+                <i class="fas fa-id-card"></i>
+                <span>FICHA JUGADOR</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="main-home-content">
+        <div class="welcome-card">
+            <h1 class="welcome-title">Departamento de Rendimiento Deportivo</h1>
+            <p class="welcome-description">
+                FC Penafiel - Sistema de gestión integral
+            </p>
+
+            <div class="sections-grid">
+                <!-- CONTROL CONDICIONAL -->
+                <div class="section-card">
+                    <div class="section-icon" style="background: linear-gradient(135deg, #DC143C 0%, #b81030 100%);">
+                        <i class="fas fa-running"></i>
+                    </div>
+                    <h3>CONTROL CONDICIONAL</h3>
+                    <p class="section-subtitle">Monitorización y optimización de las cargas físicas</p>
+
+                    <div class="section-subsections">
+                        <a href="{{ url_for('fisicos_view') }}" class="subsection-link">
+                            <span><i class="fas fa-futbol subsection-icon"></i>Control de Competición</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                        <a href="{{ url_for('microciclos_view') }}" class="subsection-link">
+                            <span><i class="fas fa-calendar-week subsection-icon"></i>Control de Microciclos</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- CONTROL DE RENDIMIENTO -->
+                <div class="section-card">
+                    <div class="section-icon" style="background: linear-gradient(135deg, #DC143C 0%, #b81030 100%);">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <h3>CONTROL DE RENDIMIENTO</h3>
+                    <p class="section-subtitle">Control estratégico y análisis competitivo</p>
+
+                    <div class="section-subsections">
+                        <a href="{{ url_for('rankings_view') }}" class="subsection-link">
+                            <span><i class="fas fa-medal subsection-icon"></i>Rendimiento Colectivo</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                        <a href="{{ url_for('rendimiento_individual_view') }}" class="subsection-link">
+                            <span><i class="fas fa-chart-line subsection-icon"></i>Rendimiento Individual</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- CONTROL ESTADO FUNCIONAL -->
+                <div class="section-card">
+                    <div class="section-icon" style="background: linear-gradient(135deg, #1a1a1a 0%, #000000 100%);">
+                        <i class="fas fa-user-md"></i>
+                    </div>
+                    <h3>CONTROL ESTADO FUNCIONAL</h3>
+                    <p class="section-subtitle">Evaluación multidimensional del estado del jugador</p>
+
+                    <div class="section-subsections">
+                        <a href="{{ url_for('medico_view') }}" class="subsection-link">
+                            <span><i class="fas fa-heartbeat subsection-icon"></i>Médico</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                        <a href="{{ url_for('antropometrico_view') }}" class="subsection-link">
+                            <span><i class="fas fa-ruler-vertical subsection-icon"></i>Antropométrico</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                        <a href="{{ url_for('psicologico_view') }}" class="subsection-link">
+                            <span><i class="fas fa-brain subsection-icon"></i>Psicológico</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                        <a href="{{ url_for('capacidad_funcional_view') }}" class="subsection-link">
+                            <span><i class="fas fa-dumbbell subsection-icon"></i>Capacidad Funcional</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- FICHA JUGADOR -->
+                <div class="section-card section-card-single">
+                    <div class="section-icon" style="background: linear-gradient(135deg, #DC143C 0%, #b81030 100%);">
+                        <i class="fas fa-id-card"></i>
+                    </div>
+                    <h3>FICHA JUGADOR</h3>
+                    <p class="section-subtitle">Análisis individual</p>
+
+                    <div class="section-subsections">
+                        <a href="{{ url_for('ficha_jugador_view') }}" class="subsection-link">
+                            <span><i class="fas fa-user subsection-icon"></i>Ver Fichas de Jugadores</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-info">
+                <p><i class="fas fa-info-circle"></i> Versión interna en desarrollo. Última actualización: Noviembre 2025</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

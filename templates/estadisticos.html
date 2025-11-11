@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Estadísticas - FC Penafiel{% endblock %}
+
+{% block content %}
+<div class="estadisticos-page">
+    <!-- Resumen de estadísticas -->
+    <div class="cards-grid">
+        <div class="card card-primary">
+            <div class="card-icon">
+                <i class="fas fa-futbol"></i>
+            </div>
+            <div class="card-content">
+                <h3>Goles a Favor</h3>
+                <p class="card-value" id="golesFavor">--</p>
+                <small>Promedio por partido</small>
+            </div>
+        </div>
+
+        <div class="card card-danger">
+            <div class="card-icon">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <div class="card-content">
+                <h3>Goles en Contra</h3>
+                <p class="card-value" id="golesContra">--</p>
+                <small>Promedio por partido</small>
+            </div>
+        </div>
+
+        <div class="card card-info">
+            <div class="card-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="card-content">
+                <h3>Expected Goals (xG)</h3>
+                <p class="card-value" id="xgShot">--</p>
+                <small>Promedio por partido</small>
+            </div>
+        </div>
+
+        <div class="card card-warning">
+            <div class="card-icon">
+                <i class="fas fa-percentage"></i>
+            </div>
+            <div class="card-content">
+                <h3>Posesión</h3>
+                <p class="card-value" id="posesion">--%</p>
+                <small>Promedio por partido</small>
+            </div>
+        </div>
+
+        <div class="card card-success">
+            <div class="card-icon">
+                <i class="fas fa-bullseye"></i>
+            </div>
+            <div class="card-content">
+                <h3>Tiros</h3>
+                <p class="card-value" id="tiros">--</p>
+                <small>Promedio por partido</small>
+            </div>
+        </div>
+
+        <div class="card card-info">
+            <div class="card-icon">
+                <i class="fas fa-crosshairs"></i>
+            </div>
+            <div class="card-content">
+                <h3>Tiros a Puerta</h3>
+                <p class="card-value" id="tirosPuerta">--</p>
+                <small>Promedio por partido</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comparativa vs Promedio Liga -->
+    <div class="row">
+        <div class="col-12">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2><i class="fas fa-balance-scale"></i> Comparativa vs Promedio Liga</h2>
+                    <button class="btn btn-sm btn-primary" onclick="loadComparativa()">
+                        <i class="fas fa-sync-alt"></i> Actualizar
+                    </button>
+                </div>
+                <div class="chart-body">
+                    <div id="comparativaChart" class="chart-placeholder">
+                        <p>Cargando gráfica...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        loadResumen();
+        loadComparativa();
+    });
+
+    async function loadResumen() {
+        try {
+            const response = await fetch('/api/estadisticos/resumen');
+            const data = await response.json();
+
+            document.getElementById('golesFavor').textContent = formatNumber(data.goles_favor, 2);
+            document.getElementById('golesContra').textContent = formatNumber(data.goles_contra, 2);
+            document.getElementById('xgShot').textContent = formatNumber(data.xg, 2);
+            document.getElementById('posesion').textContent = formatPercentage(data.posesion, 1);
+            document.getElementById('tiros').textContent = formatNumber(data.tiros, 1);
+            document.getElementById('tirosPuerta').textContent = formatNumber(data.tiros_puerta, 1);
+        } catch (error) {
+            console.error('Error cargando resumen:', error);
+        }
+    }
+
+    async function loadComparativa() {
+        try {
+            showLoader();
+            await API.handleImageResponse('comparativaChart', API.Estadisticos.getComparativa());
+        } catch (error) {
+            console.error('Error:', error);
+        } finally {
+            hideLoader();
+        }
+    }
+</script>
+{% endblock %}

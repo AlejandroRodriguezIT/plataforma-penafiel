@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+
+{% block title %}Rendimiento Colectivo - FC Penafiel{% endblock %}
+
+{% block content %}
+<div class="rankings-page">
+    <!-- Tabs de navegación -->
+    <div class="tabs">
+        <div class="tab active" data-target="tendencia-resultados">
+            <i class="fas fa-chart-line"></i> Tendencia Resultados
+        </div>
+        <div class="tab" data-target="perfil-estilo">
+            <i class="fas fa-futbol"></i> Perfil Estilo-Rendimiento
+        </div>
+        <div class="tab" data-target="uso-plantilla">
+            <i class="fas fa-users"></i> Uso-Aprovechamiento Plantilla
+        </div>
+        <div class="tab" data-target="contextos-partidos">
+            <i class="fas fa-calendar-alt"></i> Contextos Partidos
+        </div>
+    </div>
+
+    <!-- Contenido del Tab: Tendencia Resultados -->
+    <div id="tendencia-resultados" class="tab-content active">
+        <div class="desarrollo-page" style="text-align: center; padding: 4rem 2rem;">
+            <div style="max-width: 800px; margin: 0 auto;">
+                <i class="fas fa-chart-line" style="font-size: 6rem; color: #DC143C; margin-bottom: 2rem; display: block;"></i>
+
+                <h2 style="color: #333; font-size: 2rem; margin-bottom: 1rem; font-weight: bold;">
+                    Tendencia de Resultados
+                </h2>
+
+                <p style="color: #666; font-size: 1.2rem; margin-bottom: 2rem; line-height: 1.6;">
+                    Esta sección mostrará el análisis de la tendencia de resultados del equipo,
+                    incluyendo evolución de victorias, empates y derrotas, rachas y estadísticas comparativas.
+                </p>
+
+                <div style="background: linear-gradient(135deg, #DC143C 0%, #b81030 100%);
+                            color: white;
+                            padding: 1.5rem 3rem;
+                            border-radius: 50px;
+                            display: inline-block;
+                            font-size: 1.3rem;
+                            font-weight: bold;
+                            margin-top: 1rem;
+                            box-shadow: 0 4px 15px rgba(220, 20, 60, 0.3);">
+                    <i class="fas fa-tools"></i> EN DESARROLLO
+                </div>
+
+                <div style="margin-top: 3rem; padding: 2rem; background: #f8f9fa; border-radius: 10px; border-left: 4px solid #DC143C;">
+                    <p style="color: #555; font-size: 0.95rem; margin: 0;">
+                        <i class="fas fa-info-circle" style="color: #DC143C;"></i>
+                        Próximamente dispondrás de análisis detallados sobre la evolución de resultados,
+                        patrones de rendimiento y comparativas con temporadas anteriores.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido del Tab: Perfil Estilo-Rendimiento -->
+    <div id="perfil-estilo" class="tab-content">
+        <div class="estilo-juego-page">
+            <div class="row">
+                <!-- Scatter Ofensivo -->
+                <div class="col-6">
+                    <div class="chart-container">
+                        <div class="chart-body">
+                            <div id="scatterOfensivo" class="chart-placeholder">
+                                <p>Cargando gráfica...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scatter Defensivo -->
+                <div class="col-6">
+                    <div class="chart-container">
+                        <div class="chart-body">
+                            <div id="scatterDefensivo" class="chart-placeholder">
+                                <p>Cargando gráfica...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Descripción del análisis -->
+            <div class="info-section">
+                <div class="info-card">
+                    <h3><i class="fas fa-info-circle"></i> Sobre el Análisis de Estilo de Juego</h3>
+                    <div class="info-content">
+                        <h4>Scatter Ofensivo</h4>
+                        <p>
+                            Analiza la eficacia del equipo en la construcción y finalización de jugadas.
+                            El eje X representa la eficacia en la construcción ofensiva (% de acciones que llegan a tiro).
+                            El eje Y representa la eficacia en la finalización (% de tiros que se convierten en gol).
+                        </p>
+
+                        <h4>Scatter Defensivo</h4>
+                        <p>
+                            Evalúa la capacidad defensiva del equipo en dos aspectos clave.
+                            El eje X muestra la eficacia de contención defensiva (% de acciones rivales evitadas antes del tiro).
+                            El eje Y indica la eficacia de evitación (% de tiros rivales que no terminan en gol).
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido del Tab: Uso-Aprovechamiento Plantilla -->
+    <div id="uso-plantilla" class="tab-content">
+        <div class="desarrollo-page" style="text-align: center; padding: 4rem 2rem;">
+            <div style="max-width: 800px; margin: 0 auto;">
+                <i class="fas fa-users" style="font-size: 6rem; color: #DC143C; margin-bottom: 2rem; display: block;"></i>
+
+                <h2 style="color: #333; font-size: 2rem; margin-bottom: 1rem; font-weight: bold;">
+                    Uso y Aprovechamiento de la Plantilla
+                </h2>
+
+                <p style="color: #666; font-size: 1.2rem; margin-bottom: 2rem; line-height: 1.6;">
+                    Esta sección mostrará el análisis detallado del uso y aprovechamiento de la plantilla,
+                    incluyendo métricas de participación, distribución de minutos y rendimiento por jugador.
+                </p>
+
+                <div style="background: linear-gradient(135deg, #DC143C 0%, #b81030 100%);
+                            color: white;
+                            padding: 1.5rem 3rem;
+                            border-radius: 50px;
+                            display: inline-block;
+                            font-size: 1.3rem;
+                            font-weight: bold;
+                            margin-top: 1rem;
+                            box-shadow: 0 4px 15px rgba(220, 20, 60, 0.3);">
+                    <i class="fas fa-tools"></i> EN DESARROLLO
+                </div>
+
+                <div style="margin-top: 3rem; padding: 2rem; background: #f8f9fa; border-radius: 10px; border-left: 4px solid #DC143C;">
+                    <p style="color: #555; font-size: 0.95rem; margin: 0;">
+                        <i class="fas fa-info-circle" style="color: #DC143C;"></i>
+                        Próximamente dispondrás de estadísticas sobre rotaciones, tiempo de juego
+                        y eficiencia de cada jugador en el sistema del equipo.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido del Tab: Contextos Partidos -->
+    <div id="contextos-partidos" class="tab-content">
+        <div class="desarrollo-page" style="text-align: center; padding: 4rem 2rem;">
+            <div style="max-width: 800px; margin: 0 auto;">
+                <i class="fas fa-calendar-alt" style="font-size: 6rem; color: #DC143C; margin-bottom: 2rem; display: block;"></i>
+
+                <h2 style="color: #333; font-size: 2rem; margin-bottom: 1rem; font-weight: bold;">
+                    Contextos de Partidos
+                </h2>
+
+                <p style="color: #666; font-size: 1.2rem; margin-bottom: 2rem; line-height: 1.6;">
+                    Esta sección mostrará el análisis de los contextos de los partidos,
+                    incluyendo rendimiento local vs visitante, contra rivales directos y análisis situacional.
+                </p>
+
+                <div style="background: linear-gradient(135deg, #DC143C 0%, #b81030 100%);
+                            color: white;
+                            padding: 1.5rem 3rem;
+                            border-radius: 50px;
+                            display: inline-block;
+                            font-size: 1.3rem;
+                            font-weight: bold;
+                            margin-top: 1rem;
+                            box-shadow: 0 4px 15px rgba(220, 20, 60, 0.3);">
+                    <i class="fas fa-tools"></i> EN DESARROLLO
+                </div>
+
+                <div style="margin-top: 3rem; padding: 2rem; background: #f8f9fa; border-radius: 10px; border-left: 4px solid #DC143C;">
+                    <p style="color: #555; font-size: 0.95rem; margin: 0;">
+                        <i class="fas fa-info-circle" style="color: #DC143C;"></i>
+                        Próximamente dispondrás de análisis contextuales que te ayudarán a entender
+                        los factores que influyen en el rendimiento del equipo en diferentes situaciones.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .info-section {
+        margin-top: 2rem;
+    }
+
+    .info-card {
+        background: white;
+        border-radius: 10px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .info-card h3 {
+        color: #DC143C;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .info-content h4 {
+        color: #333;
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .info-content p {
+        color: #666;
+        line-height: 1.8;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Cargar gráficas cuando se activa la pestaña de Perfil Estilo-Rendimiento
+    document.addEventListener('DOMContentLoaded', function() {
+        // Detectar cuando se cambia a la pestaña perfil-estilo
+        const perfilEstiloTab = document.querySelector('[data-target="perfil-estilo"]');
+        if (perfilEstiloTab) {
+            perfilEstiloTab.addEventListener('click', function() {
+                // Cargar gráficas solo si no se han cargado previamente
+                const scatterOfensivo = document.getElementById('scatterOfensivo');
+                if (scatterOfensivo && scatterOfensivo.innerHTML.includes('Cargando gráfica')) {
+                    loadScatterOfensivo();
+                    loadScatterDefensivo();
+                }
+            });
+        }
+    });
+
+    async function loadScatterOfensivo() {
+        try {
+            showLoader();
+            await API.handleImageResponse('scatterOfensivo', API.EstiloJuego.getScatterOfensivo());
+        } catch (error) {
+            console.error('Error:', error);
+        } finally {
+            hideLoader();
+        }
+    }
+
+    async function loadScatterDefensivo() {
+        try {
+            showLoader();
+            await API.handleImageResponse('scatterDefensivo', API.EstiloJuego.getScatterDefensivo());
+        } catch (error) {
+            console.error('Error:', error);
+        } finally {
+            hideLoader();
+        }
+    }
+</script>
+{% endblock %}

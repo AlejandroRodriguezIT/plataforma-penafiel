@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Plataforma de análisis FC Penafiel">
+    <title>{% block title %}FC Penafiel - Plataforma de Análisis{% endblock %}</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/escudo.png') }}">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+
+    <!-- Font Awesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Chart.js para gráficas interactivas -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Plotly para gráficas interactivas -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+
+    <!-- Estilos base para todas las páginas con sidebar -->
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-image: url('{{ url_for('static', filename='images/fondo_penafiel.png') }}');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            z-index: -1;
+        }
+
+        .page-container {
+            display: flex;
+            min-height: 100vh;
+            width: 100%;
+        }
+
+        /* Navegación lateral */
+        .sidebar-nav {
+            width: 250px;
+            background: linear-gradient(180deg, #1a1a1a 0%, #000000 100%);
+            padding: 2rem 0;
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.5);
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 100;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            text-align: center;
+            padding: 0 1.5rem 2rem;
+            border-bottom: 2px solid #DC143C;
+            margin-bottom: 2rem;
+        }
+
+        .sidebar-logo {
+            width: 100px;
+            height: auto;
+            margin-bottom: 1rem;
+        }
+
+        .sidebar-header h2 {
+            color: #DC143C;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 0;
+            letter-spacing: 2px;
+        }
+
+        .sidebar-subtitle {
+            color: #fff;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            opacity: 0.9;
+        }
+
+        .sidebar-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            padding: 0 1rem;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 1.5rem;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+
+        .sidebar-item i {
+            font-size: 1.2rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .sidebar-item:hover {
+            background: rgba(220, 20, 60, 0.2);
+            transform: translateX(5px);
+        }
+
+        .sidebar-item.active {
+            background: linear-gradient(90deg, #DC143C 0%, #b81030 100%);
+            box-shadow: 0 4px 10px rgba(220, 20, 60, 0.3);
+        }
+
+        /* Menú desplegable */
+        .sidebar-item-dropdown {
+            position: relative;
+        }
+
+        .sidebar-item.dropdown-toggle {
+            cursor: pointer;
+            justify-content: space-between;
+        }
+
+        .sidebar-item .dropdown-arrow {
+            transition: transform 0.3s ease;
+            font-size: 0.8rem;
+        }
+
+        .sidebar-item.open .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        .sidebar-submenu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            padding-left: 1rem;
+        }
+
+        .sidebar-submenu.open {
+            max-height: 500px;
+        }
+
+        .sidebar-subitem {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            margin: 0.25rem 0;
+        }
+
+        .sidebar-subitem i {
+            font-size: 1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar-subitem:hover {
+            background: rgba(220, 20, 60, 0.15);
+            color: #fff;
+            transform: translateX(3px);
+        }
+
+        .sidebar-subitem.active {
+            background: rgba(220, 20, 60, 0.3);
+            color: #fff;
+        }
+
+        /* Contenido principal */
+        .main-page-content {
+            margin-left: 250px;
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+            min-height: 100vh;
+        }
+
+        .content-wrapper {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #DC143C;
+            text-align: center;
+        }
+
+        .page-header h1 {
+            color: #DC143C;
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .page-header h1 i {
+            font-size: 1.5rem;
+        }
+
+        /* Alertas */
+        #alertContainer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            max-width: 400px;
+        }
+
+        /* Loader */
+        #loader {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        #loader.hidden {
+            display: none;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #DC143C;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #loader p {
+            color: white;
+            margin: 0;
+            font-weight: bold;
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="page-container">
+        <!-- Navegación vertical izquierda -->
+        <div class="sidebar-nav">
+            <div class="sidebar-header">
+                <img src="{{ url_for('static', filename='images/escudo.png') }}" alt="FC Penafiel" class="sidebar-logo">
+                <h2>FC PENAFIEL</h2>
+                <p class="sidebar-subtitle">Plataforma de Análisis</p>
+            </div>
+
+            <nav class="sidebar-menu">
+                <a href="{{ url_for('index') }}" class="sidebar-item {% if request.endpoint == 'index' %}active{% endif %}">
+                    <i class="fas fa-home"></i>
+                    <span>INICIO</span>
+                </a>
+
+                <!-- Control Condicional con submenú -->
+                <div class="sidebar-item-dropdown">
+                    <div class="sidebar-item dropdown-toggle {% if request.endpoint in ['fisicos_view', 'microciclos_view'] %}active open{% endif %}" onclick="toggleDropdown(this)">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <i class="fas fa-running"></i>
+                            <span>CONTROL CONDICIONAL</span>
+                        </div>
+                        <i class="fas fa-chevron-down dropdown-arrow"></i>
+                    </div>
+                    <div class="sidebar-submenu {% if request.endpoint in ['fisicos_view', 'microciclos_view'] %}open{% endif %}">
+                        <a href="{{ url_for('fisicos_view') }}" class="sidebar-subitem {% if request.endpoint == 'fisicos_view' %}active{% endif %}">
+                            <i class="fas fa-futbol"></i>
+                            <span>Control de Competición</span>
+                        </a>
+                        <a href="{{ url_for('microciclos_view') }}" class="sidebar-subitem {% if request.endpoint == 'microciclos_view' %}active{% endif %}">
+                            <i class="fas fa-calendar-week"></i>
+                            <span>Control de Microciclos</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Control de Rendimiento con submenú -->
+                <div class="sidebar-item-dropdown">
+                    <div class="sidebar-item dropdown-toggle {% if request.endpoint in ['rankings_view', 'rendimiento_individual_view'] %}active open{% endif %}" onclick="toggleDropdown(this)">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <i class="fas fa-trophy"></i>
+                            <span>CONTROL DE RENDIMIENTO</span>
+                        </div>
+                        <i class="fas fa-chevron-down dropdown-arrow"></i>
+                    </div>
+                    <div class="sidebar-submenu {% if request.endpoint in ['rankings_view', 'rendimiento_individual_view'] %}open{% endif %}">
+                        <a href="{{ url_for('rankings_view') }}" class="sidebar-subitem {% if request.endpoint == 'rankings_view' %}active{% endif %}">
+                            <i class="fas fa-medal"></i>
+                            <span>Rendimiento Colectivo</span>
+                        </a>
+                        <a href="{{ url_for('rendimiento_individual_view') }}" class="sidebar-subitem {% if request.endpoint == 'rendimiento_individual_view' %}active{% endif %}">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Rendimiento Individual</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Control Estado Funcional con submenú -->
+                <div class="sidebar-item-dropdown">
+                    <div class="sidebar-item dropdown-toggle {% if request.endpoint in ['medico_view', 'antropometrico_view', 'psicologico_view', 'capacidad_funcional_view'] %}active open{% endif %}" onclick="toggleDropdown(this)">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <i class="fas fa-user-md"></i>
+                            <span>CONTROL ESTADO FUNCIONAL</span>
+                        </div>
+                        <i class="fas fa-chevron-down dropdown-arrow"></i>
+                    </div>
+                    <div class="sidebar-submenu {% if request.endpoint in ['medico_view', 'antropometrico_view', 'psicologico_view', 'capacidad_funcional_view'] %}open{% endif %}">
+                        <a href="{{ url_for('medico_view') }}" class="sidebar-subitem {% if request.endpoint == 'medico_view' %}active{% endif %}">
+                            <i class="fas fa-heartbeat"></i>
+                            <span>Médico</span>
+                        </a>
+                        <a href="{{ url_for('antropometrico_view') }}" class="sidebar-subitem {% if request.endpoint == 'antropometrico_view' %}active{% endif %}">
+                            <i class="fas fa-ruler-vertical"></i>
+                            <span>Antropométrico</span>
+                        </a>
+                        <a href="{{ url_for('psicologico_view') }}" class="sidebar-subitem {% if request.endpoint == 'psicologico_view' %}active{% endif %}">
+                            <i class="fas fa-brain"></i>
+                            <span>Psicológico</span>
+                        </a>
+                        <a href="{{ url_for('capacidad_funcional_view') }}" class="sidebar-subitem {% if request.endpoint == 'capacidad_funcional_view' %}active{% endif %}">
+                            <i class="fas fa-dumbbell"></i>
+                            <span>Capacidad Funcional</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Ficha Jugador -->
+                <a href="{{ url_for('ficha_jugador_view') }}" class="sidebar-item {% if request.endpoint == 'ficha_jugador_view' %}active{% endif %}">
+                    <i class="fas fa-id-card"></i>
+                    <span>FICHA JUGADOR</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- Contenido principal -->
+        <div class="main-page-content">
+            <div class="content-wrapper">
+                {% block header %}
+                <header class="page-header">
+                    <h1>{{ titulo }}</h1>
+                </header>
+                {% endblock %}
+
+                <!-- Alertas -->
+                <div id="alertContainer"></div>
+
+                <!-- Loader -->
+                <div id="loader" class="loader hidden">
+                    <div class="spinner"></div>
+                    <p>Cargando datos...</p>
+                </div>
+
+                <!-- Contenido de la página -->
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Función para toggle del menú desplegable
+        function toggleDropdown(element) {
+            const submenu = element.nextElementSibling;
+            element.classList.toggle('open');
+            submenu.classList.toggle('open');
+        }
+    </script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

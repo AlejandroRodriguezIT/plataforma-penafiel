@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Estilo de Juego - FC Penafiel{% endblock %}
+
+{% block content %}
+<div class="estilo-juego-page">
+    <div class="row">
+        <!-- Scatter Ofensivo -->
+        <div class="col-6">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2><i class="fas fa-crosshairs"></i> Análisis Ofensivo</h2>
+                    <button class="btn btn-sm btn-primary" onclick="loadScatterOfensivo()">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+                <div class="chart-body">
+                    <div id="scatterOfensivo" class="chart-placeholder">
+                        <p>Cargando gráfica...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scatter Defensivo -->
+        <div class="col-6">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2><i class="fas fa-shield-alt"></i> Análisis Defensivo</h2>
+                    <button class="btn btn-sm btn-primary" onclick="loadScatterDefensivo()">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+                <div class="chart-body">
+                    <div id="scatterDefensivo" class="chart-placeholder">
+                        <p>Cargando gráfica...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Descripción del análisis -->
+    <div class="info-section">
+        <div class="info-card">
+            <h3><i class="fas fa-info-circle"></i> Sobre el Análisis de Estilo de Juego</h3>
+            <div class="info-content">
+                <h4>Scatter Ofensivo</h4>
+                <p>
+                    Analiza la eficacia del equipo en la construcción y finalización de jugadas.
+                    El eje X representa la eficacia en la construcción ofensiva (% de acciones que llegan a tiro).
+                    El eje Y representa la eficacia en la finalización (% de tiros que se convierten en gol).
+                </p>
+
+                <h4>Scatter Defensivo</h4>
+                <p>
+                    Evalúa la capacidad defensiva del equipo en dos aspectos clave.
+                    El eje X muestra la eficacia de contención defensiva (% de acciones rivales evitadas antes del tiro).
+                    El eje Y indica la eficacia de evitación (% de tiros rivales que no terminan en gol).
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .info-section {
+        margin-top: 2rem;
+    }
+
+    .info-card {
+        background: white;
+        border-radius: 10px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .info-card h3 {
+        color: var(--color-primary);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .info-content h4 {
+        color: var(--color-dark);
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .info-content p {
+        color: var(--color-gray);
+        line-height: 1.8;
+    }
+</style>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        loadScatterOfensivo();
+        loadScatterDefensivo();
+    });
+
+    async function loadScatterOfensivo() {
+        try {
+            showLoader();
+            await API.handleImageResponse('scatterOfensivo', API.EstiloJuego.getScatterOfensivo());
+        } catch (error) {
+            console.error('Error:', error);
+        } finally {
+            hideLoader();
+        }
+    }
+
+    async function loadScatterDefensivo() {
+        try {
+            showLoader();
+            await API.handleImageResponse('scatterDefensivo', API.EstiloJuego.getScatterDefensivo());
+        } catch (error) {
+            console.error('Error:', error);
+        } finally {
+            hideLoader();
+        }
+    }
+</script>
+{% endblock %}

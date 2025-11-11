@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Ficha del Jugador - FC Penafiel{% endblock %}
+
+{% block content %}
+<div class="desarrollo-page" style="text-align: center; padding: 4rem 2rem;">
+    <div style="max-width: 800px; margin: 0 auto;">
+        <i class="fas fa-id-card" style="font-size: 6rem; color: #DC143C; margin-bottom: 2rem; display: block;"></i>
+
+        <h2 style="color: #333; font-size: 2rem; margin-bottom: 1rem; font-weight: bold;">
+            Ficha del Jugador
+        </h2>
+
+        <p style="color: #666; font-size: 1.2rem; margin-bottom: 2rem; line-height: 1.6;">
+            Esta sección mostrará el análisis individual y perfil completo de cada jugador,
+            incluyendo estadísticas personales, histórico de rendimiento, datos físicos y médicos consolidados.
+        </p>
+
+        <div style="background: linear-gradient(135deg, #DC143C 0%, #b81030 100%);
+                    color: white;
+                    padding: 1.5rem 3rem;
+                    border-radius: 50px;
+                    display: inline-block;
+                    font-size: 1.3rem;
+                    font-weight: bold;
+                    margin-top: 1rem;
+                    box-shadow: 0 4px 15px rgba(220, 20, 60, 0.3);">
+            <i class="fas fa-tools"></i> EN DESARROLLO
+        </div>
+
+        <div style="margin-top: 3rem; padding: 2rem; background: #f8f9fa; border-radius: 10px; border-left: 4px solid #DC143C;">
+            <p style="color: #555; font-size: 0.95rem; margin: 0;">
+                <i class="fas fa-info-circle" style="color: #DC143C;"></i>
+                Próximamente dispondrás de un perfil completo de cada jugador con toda su información
+                consolidada: datos personales, métricas físicas, historial médico, rendimiento y evolución.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

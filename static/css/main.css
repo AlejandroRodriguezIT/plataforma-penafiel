@@ -1,0 +1,340 @@
+/* Variables CSS - Colores corporativos FC Penafiel */
+:root {
+    --color-primary: #DC143C;     /* Rojo Penafiel */
+    --color-secondary: #000000;   /* Negro Penafiel */
+    --color-success: #27ae60;
+    --color-info: #1a1a1a;        /* Negro corporativo */
+    --color-warning: #f39c12;
+    --color-danger: #DC143C;      /* Rojo Penafiel */
+    --color-gray: #95a5a6;
+    --color-dark: #1a1a1a;        /* Negro corporativo */
+    --color-light: #ecf0f1;
+    --color-white: #ffffff;
+    --color-bg: #f5f6fa;
+
+    --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --transition: all 0.3s ease;
+}
+
+/* Reset y estilos base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--color-bg);
+    color: var(--color-dark);
+    line-height: 1.6;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Container */
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Banner corporativo */
+.hero-banner {
+    width: 100%;
+    max-height: 250px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.banner-image {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    display: block;
+}
+
+/* Navbar */
+.navbar {
+    background-color: var(--color-white);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.navbar-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+}
+
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--color-primary);
+}
+
+.navbar-logo {
+    height: 50px;
+    width: auto;
+    object-fit: contain;
+}
+
+.navbar-brand i {
+    font-size: 2rem;
+}
+
+.navbar-menu {
+    display: flex;
+    list-style: none;
+    gap: 2rem;
+}
+
+.navbar-menu a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    transition: var(--transition);
+    color: var(--color-dark);
+}
+
+.navbar-menu a:hover,
+.navbar-menu a.active {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+}
+
+.navbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.ultima-actualizacion {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--color-gray);
+    font-size: 0.9rem;
+}
+
+/* Botones */
+.btn {
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-primary {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+}
+
+.btn-primary:hover {
+    background-color: #b81030;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(220, 20, 60, 0.3);
+}
+
+.btn-outline {
+    background-color: transparent;
+    border: 2px solid var(--color-primary);
+    color: var(--color-primary);
+}
+
+.btn-outline:hover {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+}
+
+.btn-sm {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.9rem;
+}
+
+/* Main Content */
+.main-content {
+    min-height: calc(100vh - 160px);
+    padding: 2rem 0;
+}
+
+.page-header {
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    font-size: 2.5rem;
+    color: var(--color-dark);
+    margin-bottom: 0.5rem;
+}
+
+/* Footer */
+.footer {
+    background-color: var(--color-dark);
+    color: var(--color-light);
+    text-align: center;
+    padding: 2rem 0;
+    margin-top: 3rem;
+}
+
+.footer p {
+    margin: 0.3rem 0;
+}
+
+/* Loader */
+.loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.loader.hidden {
+    display: none;
+}
+
+.spinner {
+    border: 5px solid var(--color-light);
+    border-top: 5px solid var(--color-primary);
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loader p {
+    color: var(--color-white);
+    margin-top: 1rem;
+    font-size: 1.2rem;
+}
+
+/* Alertas */
+#alertContainer {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 1001;
+    max-width: 400px;
+}
+
+.alert {
+    padding: 1rem 1.5rem;
+    margin-bottom: 1rem;
+    border-radius: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    animation: slideIn 0.3s ease;
+}
+
+.alert-success {
+    background-color: var(--color-success);
+    color: var(--color-white);
+}
+
+.alert-error {
+    background-color: var(--color-danger);
+    color: var(--color-white);
+}
+
+.alert-info {
+    background-color: var(--color-info);
+    color: var(--color-white);
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Form Controls - Estilo similar a botones */
+.form-control {
+    padding: 0.5rem 1rem;
+    border: 2px solid #DC143C;
+    background: white;
+    color: #333;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23DC143C' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    background-size: 1.2em;
+    padding-right: 2.5rem;
+}
+
+.form-control:hover {
+    background-color: rgba(220, 20, 60, 0.05);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(220, 20, 60, 0.15);
+}
+
+.form-control:focus {
+    background-color: white;
+    border-color: #DC143C;
+    box-shadow: 0 0 0 3px rgba(220, 20, 60, 0.1);
+}
+
+.form-control option {
+    padding: 0.5rem;
+    font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .navbar-container {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .navbar-menu {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+    }
+}

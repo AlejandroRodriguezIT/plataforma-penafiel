@@ -1,0 +1,564 @@
+{% extends "base.html" %}
+
+{% block title %}Control de Competición - FC Penafiel{% endblock %}
+
+{% block content %}
+<div class="fisicos-page">
+    <div class="tabs">
+        <div class="tab active" data-target="barras-colectivas">
+            <i class="fas fa-users"></i> Control de Competición
+        </div>
+        <div class="tab" data-target="barras-individuales">
+            <i class="fas fa-user"></i> Análisis Individual
+        </div>
+    </div>
+
+    <!-- Tab: Barras Colectivas -->
+    <div id="barras-colectivas" class="tab-content active">
+        <div class="chart-container">
+            <div class="chart-body">
+                <div class="charts-grid">
+                    <div class="chart-item">
+                        <div id="distanciaTotal" class="chart-placeholder"></div>
+                    </div>
+                    <div class="chart-item">
+                        <div id="distanciaHSR" class="chart-placeholder"></div>
+                    </div>
+                    <div class="chart-item">
+                        <div id="distanciaSprint" class="chart-placeholder"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab: Barras Individuales -->
+    <div id="barras-individuales" class="tab-content">
+        <div class="chart-container">
+            <div class="chart-header">
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <label for="partidoSelector" style="font-size: 0.9rem; color: #666; font-weight: 600;">Seleccionar Partido:</label>
+                    <select id="partidoSelector" class="form-control" onchange="loadScatterIndividual()" style="min-width: 350px;">
+                        <option value="">Cargando partidos...</option>
+                    </select>
+                </div>
+            </div>
+            <div class="chart-body">
+                <div id="scatterIndividual" class="chart-placeholder"></div>
+
+                <!-- Tabla de datos -->
+                <div style="margin-top: 2rem;">
+                    <h3 style="color: #333; font-size: 1.2rem; margin-bottom: 1rem;">
+                        <i class="fas fa-table"></i> Datos del Partido
+                    </h3>
+                    <div id="scatterTable" style="overflow-x: auto;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<style>
+    .charts-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .chart-item {
+        background: white;
+        border-radius: 8px;
+        padding: 1rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .chart-item img {
+        width: 100%;
+        height: auto;
+        border-radius: 4px;
+    }
+
+    .chart-placeholder {
+        text-align: center;
+        padding: 2rem;
+        color: #666;
+    }
+
+    /* Estilos de tabla */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    table thead {
+        background: linear-gradient(135deg, #DC143C 0%, #b81030 100%);
+        color: white;
+    }
+
+    table th {
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    table td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #eee;
+    }
+
+    table tbody tr:hover {
+        background: #f8f9fa;
+    }
+
+    table tbody tr:last-child td {
+        border-bottom: none;
+    }
+</style>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        loadBarrasColectivas();
+        loadPartidosSelector();
+    });
+
+    async function loadBarrasColectivas() {
+        console.log('[FISICOS] Iniciando carga de barras colectivas...');
+        try {
+            showLoader();
+            const response = await API.Fisicos.getBarrasColectivas();
+            console.log('[FISICOS] Respuesta recibida:', response);
+
+            if (response.status === 'success' && response.data) {
+                const data = response.data;
+
+                // Crear etiquetas del eje X
+                const xLabels = data.jornadas.map((j, i) =>
+                    data.codigos[i] ? `${j}<br>${data.codigos[i]}` : j
+                );
+
+                // Configuración común para los gráficos
+                const commonLayout = {
+                    xaxis: {
+                        title: {
+                            text: '<b>Jornada / Rival</b>',
+                            font: { size: 11 }
+                        },
+                        showgrid: false
+                    },
+                    plot_bgcolor: 'white',
+                    paper_bgcolor: 'white',
+                    height: 500,
+                    margin: { t: 80, b: 80, l: 80, r: 80 }
+                };
+
+                const config = {
+                    displayModeBar: false,
+                    displaylogo: false
+                };
+
+                // Gráfico 1: Distancia Total
+                const trace1 = {
+                    x: xLabels,
+                    y: data.distancia_total,
+                    type: 'bar',
+                    marker: {
+                        color: data.colores,
+                        line: { color: 'white', width: 1 }
+                    },
+                    text: data.distancia_total.map(d => Math.round(d).toLocaleString('es-ES') + ' m'),
+                    textposition: 'outside',
+                    textfont: { size: 12, color: '#333' }
+                };
+
+                const layout1 = {
+                    ...commonLayout,
+                    title: {
+                        text: '<b>DISTANCIA TOTAL RECORRIDA</b>',
+                        x: 0.5,
+                        xanchor: 'center',
+                        font: { size: 18, color: '#1a1a1a', family: 'Arial Black' }
+                    },
+                    yaxis: {
+                        title: { text: '<b>Distancia total recorrida / metros</b>', font: { size: 11 } },
+                        showgrid: true,
+                        gridcolor: 'rgba(0,0,0,0.1)'
+                    },
+                    shapes: [{
+                        type: 'line',
+                        x0: 0,
+                        x1: 1,
+                        xref: 'paper',
+                        y0: data.promedio_total,
+                        y1: data.promedio_total,
+                        line: {
+                            color: 'black',
+                            width: 2,
+                            dash: 'dash'
+                        }
+                    }]
+                };
+
+                Plotly.newPlot('distanciaTotal', [trace1], layout1, config);
+
+                // Gráfico 2: Distancia HSR
+                const trace2 = {
+                    x: xLabels,
+                    y: data.distancia_hsr,
+                    type: 'bar',
+                    marker: {
+                        color: data.colores,
+                        line: { color: 'white', width: 1 }
+                    },
+                    text: data.distancia_hsr.map(d => Math.round(d).toLocaleString('es-ES') + ' m'),
+                    textposition: 'outside',
+                    textfont: { size: 12, color: '#333' }
+                };
+
+                const layout2 = {
+                    ...commonLayout,
+                    title: {
+                        text: '<b>DISTANCIA EN ALTA VELOCIDAD (HSR)</b>',
+                        x: 0.5,
+                        xanchor: 'center',
+                        font: { size: 18, color: '#1a1a1a', family: 'Arial Black' }
+                    },
+                    yaxis: {
+                        title: { text: '<b>Distancia HSR / metros</b>', font: { size: 11 } },
+                        showgrid: true,
+                        gridcolor: 'rgba(0,0,0,0.1)'
+                    },
+                    shapes: [{
+                        type: 'line',
+                        x0: 0,
+                        x1: 1,
+                        xref: 'paper',
+                        y0: data.promedio_hsr,
+                        y1: data.promedio_hsr,
+                        line: {
+                            color: 'black',
+                            width: 2,
+                            dash: 'dash'
+                        }
+                    }]
+                };
+
+                Plotly.newPlot('distanciaHSR', [trace2], layout2, config);
+
+                // Gráfico 3: Distancia Sprint
+                const trace3 = {
+                    x: xLabels,
+                    y: data.distancia_sprint,
+                    type: 'bar',
+                    marker: {
+                        color: data.colores,
+                        line: { color: 'white', width: 1 }
+                    },
+                    text: data.distancia_sprint.map(d => Math.round(d).toLocaleString('es-ES') + ' m'),
+                    textposition: 'outside',
+                    textfont: { size: 12, color: '#333' }
+                };
+
+                const layout3 = {
+                    ...commonLayout,
+                    title: {
+                        text: '<b>DISTANCIA EN SPRINT</b>',
+                        x: 0.5,
+                        xanchor: 'center',
+                        font: { size: 18, color: '#1a1a1a', family: 'Arial Black' }
+                    },
+                    yaxis: {
+                        title: { text: '<b>Distancia en sprint / metros</b>', font: { size: 11 } },
+                        showgrid: true,
+                        gridcolor: 'rgba(0,0,0,0.1)'
+                    },
+                    shapes: [{
+                        type: 'line',
+                        x0: 0,
+                        x1: 1,
+                        xref: 'paper',
+                        y0: data.promedio_sprint,
+                        y1: data.promedio_sprint,
+                        line: {
+                            color: 'black',
+                            width: 2,
+                            dash: 'dash'
+                        }
+                    }]
+                };
+
+                Plotly.newPlot('distanciaSprint', [trace3], layout3, config);
+
+                console.log('[FISICOS] Gráficas cargadas exitosamente');
+            } else {
+                console.error('[FISICOS] Respuesta inválida:', response);
+                throw new Error(response.message || 'Error al cargar las gráficas');
+            }
+        } catch (error) {
+            console.error('[FISICOS] Error:', error);
+            showAlert('Error al cargar las gráficas: ' + error.message, 'error');
+        } finally {
+            hideLoader();
+        }
+    }
+
+    async function loadPartidosSelector() {
+        console.log('[FISICOS] Cargando lista de partidos...');
+        try {
+            const response = await API.Fisicos.getPartidos();
+            console.log('[FISICOS] Partidos recibidos:', response);
+
+            if (response.status === 'success' && response.data) {
+                const selector = document.getElementById('partidoSelector');
+                selector.innerHTML = '';
+
+                // Agregar partidos con formato 'JX - Rival'
+                response.data.partidos.forEach(p => {
+                    const option = document.createElement('option');
+                    option.value = p.partido;
+                    option.textContent = p.label; // Usa el label con formato 'JX - Rival'
+                    selector.appendChild(option);
+                });
+
+                // Seleccionar el partido más reciente por defecto
+                if (response.data.partido_reciente) {
+                    selector.value = response.data.partido_reciente;
+                    // Cargar scatter plot del partido más reciente
+                    loadScatterIndividual();
+                }
+            }
+        } catch (error) {
+            console.error('[FISICOS] Error al cargar partidos:', error);
+            showAlert('Error al cargar lista de partidos: ' + error.message, 'error');
+        }
+    }
+
+    async function loadScatterIndividual() {
+        console.log('[FISICOS] Cargando scatter individual...');
+        const selector = document.getElementById('partidoSelector');
+        const partido = selector.value;
+
+        if (!partido) {
+            document.getElementById('scatterIndividual').innerHTML =
+                '<div class="chart-placeholder"><p>Cargando análisis individual...</p></div>';
+            return;
+        }
+
+        try {
+            showLoader();
+            const response = await API.Fisicos.getScatterIndividual(partido);
+            console.log('[FISICOS] Scatter individual recibido:', response);
+
+            if (response.status === 'success' && response.data && response.data.jugadores) {
+                const data = response.data;
+                const jugadores = data.jugadores;
+
+                // Preparar datos para Plotly (distancias reales)
+                const x = jugadores.map(j => j.distancia_total);
+                const y = jugadores.map(j => j.distancia_hsr);
+                const nombres = jugadores.map(j => j.jugador);
+
+                // Crear textos de tooltip
+                const hoverTexts = jugadores.map(j => {
+                    return `<b>${j.jugador}</b><br>` +
+                           `<br>` +
+                           `<b>Minutos jugados:</b> ${j.minutos_jugados} min<br>` +
+                           `<b>Distancia Total:</b> ${j.distancia_total.toLocaleString('es-ES')} m<br>` +
+                           `<b>Distancia HSR:</b> ${j.distancia_hsr.toLocaleString('es-ES')} m<br>` +
+                           `<b>Distancia Sprint:</b> ${j.distancia_sprint.toLocaleString('es-ES')} m`;
+                });
+
+                // Crear el scatter plot
+                const trace = {
+                    x: x,
+                    y: y,
+                    mode: 'markers+text',
+                    type: 'scatter',
+                    name: 'Jugadores',
+                    text: nombres,
+                    textposition: 'top center',
+                    textfont: {
+                        size: 10,
+                        color: 'black',
+                        family: 'Arial Black'
+                    },
+                    hovertext: hoverTexts,
+                    hoverinfo: 'text',
+                    marker: {
+                        size: 15,
+                        color: '#DC143C',
+                        line: {
+                            color: 'white',
+                            width: 2
+                        },
+                        opacity: 0.8
+                    }
+                };
+
+                const layout = {
+                    title: {
+                        text: `<b>VOLUMEN vs INTENSIDAD - ${data.partido}</b>`,
+                        x: 0.5,
+                        xanchor: 'center',
+                        font: {
+                            size: 18,
+                            color: '#1a1a1a',
+                            family: 'Arial Black'
+                        }
+                    },
+                    xaxis: {
+                        title: {
+                            text: '<b>Distancia Total (metros)</b>',
+                            font: { size: 13 }
+                        },
+                        showgrid: true,
+                        gridcolor: 'rgba(0,0,0,0.1)',
+                        zeroline: false
+                    },
+                    yaxis: {
+                        title: {
+                            text: '<b>Distancia HSR > 21km/h (metros)</b>',
+                            font: { size: 13 }
+                        },
+                        showgrid: true,
+                        gridcolor: 'rgba(0,0,0,0.1)',
+                        zeroline: false
+                    },
+                    plot_bgcolor: 'white',
+                    hovermode: 'closest',
+                    showlegend: false,
+                    height: 600,
+                    margin: { t: 80, b: 80, l: 80, r: 80 },
+                    shapes: [
+                        // Línea vertical de media
+                        {
+                            type: 'line',
+                            x0: data.mean_x,
+                            x1: data.mean_x,
+                            y0: 0,
+                            y1: 1,
+                            yref: 'paper',
+                            line: {
+                                color: 'black',
+                                width: 2,
+                                dash: 'dash'
+                            }
+                        },
+                        // Línea horizontal de media
+                        {
+                            type: 'line',
+                            x0: 0,
+                            x1: 1,
+                            xref: 'paper',
+                            y0: data.mean_y,
+                            y1: data.mean_y,
+                            line: {
+                                color: 'black',
+                                width: 2,
+                                dash: 'dash'
+                            }
+                        }
+                    ],
+                    annotations: [
+                        // Anotación de media vertical
+                        {
+                            x: data.mean_x,
+                            y: 1,
+                            yref: 'paper',
+                            text: `Media Distancia Total: ${Math.round(data.mean_x).toLocaleString('es-ES')} m`,
+                            showarrow: false,
+                            yanchor: 'bottom',
+                            xanchor: 'left',
+                            font: { size: 10 }
+                        },
+                        // Anotación de media horizontal
+                        {
+                            x: 1,
+                            xref: 'paper',
+                            y: data.mean_y,
+                            text: `Media HSR: ${Math.round(data.mean_y).toLocaleString('es-ES')} m`,
+                            showarrow: false,
+                            xanchor: 'right',
+                            yanchor: 'bottom',
+                            font: { size: 10 }
+                        }
+                    ]
+                };
+
+                const config = {
+                    displayModeBar: false,
+                    displaylogo: false,
+                    modeBarButtonsToRemove: ['lasso2d', 'select2d']
+                };
+
+                // Crear el gráfico
+                Plotly.newPlot('scatterIndividual', [trace], layout, config);
+
+                // Crear tabla de datos
+                createScatterTable(jugadores);
+
+                console.log('[FISICOS] Gráfico y tabla creados exitosamente');
+            } else {
+                console.error('[FISICOS] No se encontraron datos de jugadores');
+                throw new Error(response.message || 'Error al cargar el scatter plot');
+            }
+        } catch (error) {
+            console.error('[FISICOS] Error:', error);
+            document.getElementById('scatterIndividual').innerHTML =
+                `<div class="chart-placeholder">
+                    <p style="color: var(--color-danger);">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Error al cargar el análisis individual
+                    </p>
+                </div>`;
+            showAlert('Error al cargar el análisis individual: ' + error.message, 'error');
+        } finally {
+            hideLoader();
+        }
+    }
+
+    function createScatterTable(jugadores) {
+        let tableHTML = '<table><thead><tr>';
+        tableHTML += '<th>Jugador</th>';
+        tableHTML += '<th>Minutos Jugados</th>';
+        tableHTML += '<th>Distancia Total (m)</th>';
+        tableHTML += '<th>Distancia HSR (m)</th>';
+        tableHTML += '<th>Distancia Sprint (m)</th>';
+        tableHTML += '</tr></thead><tbody>';
+
+        // Ordenar jugadores por distancia total descendente
+        const jugadoresOrdenados = [...jugadores].sort((a, b) => b.distancia_total - a.distancia_total);
+
+        for (const jugador of jugadoresOrdenados) {
+            tableHTML += '<tr>';
+            tableHTML += `<td><strong>${jugador.jugador}</strong></td>`;
+            tableHTML += `<td>${jugador.minutos_jugados} min</td>`;
+            tableHTML += `<td>${jugador.distancia_total.toLocaleString('es-ES')} m</td>`;
+            tableHTML += `<td>${jugador.distancia_hsr.toLocaleString('es-ES')} m</td>`;
+            tableHTML += `<td>${jugador.distancia_sprint.toLocaleString('es-ES')} m</td>`;
+            tableHTML += '</tr>';
+        }
+
+        tableHTML += '</tbody></table>';
+        document.getElementById('scatterTable').innerHTML = tableHTML;
+    }
+
+    async function loadEvolutivo() {
+        try {
+            showLoader();
+            await API.handleImageResponse('evolutivoChart', API.Fisicos.getEvolutivo());
+        } catch (error) {
+            console.error('Error:', error);
+        } finally {
+            hideLoader();
+        }
+    }
+</script>
+{% endblock %}
