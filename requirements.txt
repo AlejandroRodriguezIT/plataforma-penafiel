@@ -2,15 +2,15 @@
 Flask==3.0.0
 Flask-CORS==4.0.0
 
-# Análisis de datos (versiones optimizadas para Render)
-pandas==2.2.0
-numpy==1.26.4
+# Análisis de datos (versiones con wheels pre-compilados)
+pandas==2.0.3
+numpy==1.24.3
 openpyxl==3.1.2
 
 # Visualización
-matplotlib==3.8.2
-seaborn==0.13.0
-plotly==5.18.0
+matplotlib==3.7.2
+seaborn==0.12.2
+plotly==5.17.0
 
 # Utilidades
 python-dateutil==2.8.2
