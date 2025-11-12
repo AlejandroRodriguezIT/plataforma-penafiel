@@ -63,7 +63,7 @@ class FisicosModule:
                     Fecha,
                     Jugador,
                     Minutos_jugados,
-                    Distancia_total AS Distancia_Total,
+                    Distancia_total,
                     Distancia_HSR,
                     Distancia_Sprint,
                     Velocidad_Maxima,
@@ -85,25 +85,20 @@ class FisicosModule:
 
     def _obtener_resultados(self):
         """
-        Obtiene los resultados de partidos desde el archivo Excel Resultados.xlsx
+        Obtiene los resultados de partidos desde la base de datos MySQL (tabla Resultado)
         Columnas: Jornada, Resultado, Codigo
         """
         try:
-            resultados_path = self.config.ARCHIVO_RESULTADOS
-
-            # Leer archivo Excel
-            df = pd.read_excel(resultados_path, engine='openpyxl')
+            # Cargar desde base de datos usando la función centralizada
+            df = load_excel_data(self.config.ARCHIVO_RESULTADOS)
 
             # Normalizar Jornada a formato JX en mayúsculas
             df['Jornada'] = df['Jornada'].astype(str).str.strip().str.upper()
 
             return df[['Jornada', 'Codigo', 'Resultado']]
 
-        except PermissionError:
-            logger.error("Error: El archivo Resultados.xlsx está abierto. Cierra el archivo Excel e intenta de nuevo.")
-            return pd.DataFrame()
         except Exception as e:
-            logger.error(f"Error al leer archivo de resultados: {e}")
+            logger.error(f"Error al leer resultados desde base de datos: {e}")
             return pd.DataFrame()
 
     def generar_barras_colectivas(self) -> dict:
@@ -122,7 +117,7 @@ class FisicosModule:
             df_p = self._obtener_datos_partidos_bd()
 
             if df_p.empty:
-                logger.warning("No se encontraron datos en BD, usando archivo local")
+                logger.warning("No se encontraron datos con consulta SQL directa, usando carga estándar desde BD")
                 df_p = load_excel_data(self.archivo_partidos)
 
             # 2. Filtrar por 1ª y 2ª parte
@@ -302,7 +297,7 @@ class FisicosModule:
             df_p = self._obtener_datos_partidos_bd()
 
             if df_p.empty:
-                logger.warning("No se encontraron datos en BD, usando archivo local")
+                logger.warning("No se encontraron datos con consulta SQL directa, usando carga estándar desde BD")
                 df_p = load_excel_data(self.archivo_partidos)
 
             # Obtener partidos únicos con su fecha y jornada
@@ -369,7 +364,7 @@ class FisicosModule:
             df_p = self._obtener_datos_partidos_bd()
 
             if df_p.empty:
-                logger.warning("No se encontraron datos en BD, usando archivo local")
+                logger.warning("No se encontraron datos con consulta SQL directa, usando carga estándar desde BD")
                 df_p = load_excel_data(self.archivo_partidos)
 
             # 2. Si no se especifica partido, usar el más reciente

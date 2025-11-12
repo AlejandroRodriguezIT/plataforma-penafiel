@@ -81,12 +81,19 @@ def load_from_database(table_name: str) -> pd.DataFrame:
             'Minutos_jugados', 'Distancia_total', 'Distancia_HSR', 'Distancia_Sprint',
             'Velocidad_Maxima', 'id', 'team_xgShot', 'team_goal', 'team_shot',
             'team_shotSuccess', 'team_possession', 'team_ppda', 'opp_xgShot', 'opp_goal',
-            'opp_shot', 'opp_shotSuccess'
+            'opp_shot', 'opp_shotSuccess', 'team_passToFinalThird', 'opp_passToFinalThird',
+            'Codigo'
         ]
 
         for col in df.columns:
             if col in numeric_columns:
                 df[col] = pd.to_numeric(df[col], errors='coerce')
+
+        # Limpiar columnas de texto (eliminar espacios adicionales)
+        text_columns = ['Sesion', 'Tarea', 'Jugador', 'Partido', 'Situacion', 'Posicion', 'Equipo', 'Resultado']
+        for col in df.columns:
+            if col in text_columns and col in df.columns:
+                df[col] = df[col].astype(str).str.strip()
 
         logger.info(f"Datos cargados exitosamente desde la tabla {table_name}")
         return df
@@ -133,58 +140,44 @@ def to_numeric(s: pd.Series) -> pd.Series:
 
 def load_excel_data(file_path: Path, sheet_name: str = None) -> pd.DataFrame:
     """
-    Carga datos desde un archivo Excel o desde la base de datos como fallback
+    Carga datos directamente desde la base de datos MySQL
+
+    IMPORTANTE: Esta función ahora carga EXCLUSIVAMENTE desde base de datos.
+    Los archivos Excel locales ya no se utilizan.
 
     Args:
-        file_path: Ruta al archivo Excel
-        sheet_name: Nombre de la hoja (opcional)
+        file_path: Ruta al archivo Excel (solo para obtener el mapeo a tabla)
+        sheet_name: Nombre de la hoja (ignorado, mantenido por compatibilidad)
 
     Returns:
-        DataFrame con los datos
+        DataFrame con los datos desde MySQL
     """
     # Mapeo de archivos a tablas de base de datos
     file_to_table_map = {
         'Entrenos_Completo.xlsx': 'Datos_Fisicos_Entreno',
         'Partidos_Completo.xlsx': 'Datos_Fisicos_Partido',
         'promedios_equipos.xlsx': 'Datos_Estadisticos_Promedio',
-        'Resultados.xlsx': 'Datos_Resultados',
+        'Resultados.xlsx': 'Resultado',
     }
 
-    # Intentar cargar desde archivo local primero
+    # Obtener nombre del archivo
+    file_name = Path(file_path).name
+
+    # Buscar tabla correspondiente
+    table_name = file_to_table_map.get(file_name)
+
+    if not table_name:
+        logger.error(f"No hay mapeo de tabla para el archivo {file_name}")
+        raise ValueError(f"Archivo {file_name} sin mapeo a tabla de BD")
+
     try:
-        if sheet_name:
-            df = pd.read_excel(file_path, sheet_name=sheet_name)
-        else:
-            df = pd.read_excel(file_path)
-
-        # Limpiar nombres de columnas
-        df.columns = df.columns.str.strip()
-
-        logger.info(f"Datos cargados exitosamente desde archivo {file_path}")
+        # Cargar directamente desde base de datos
+        logger.info(f"Cargando datos desde base de datos (tabla {table_name})...")
+        df = load_from_database(table_name)
+        logger.info(f"Datos cargados exitosamente desde tabla {table_name}")
         return df
-    except FileNotFoundError:
-        # Si el archivo no existe, intentar cargar desde la base de datos
-        logger.warning(f"Archivo {file_path} no encontrado. Intentando cargar desde base de datos...")
-
-        # Obtener nombre del archivo
-        file_name = Path(file_path).name
-
-        # Buscar tabla correspondiente
-        table_name = file_to_table_map.get(file_name)
-
-        if table_name:
-            try:
-                df = load_from_database(table_name)
-                logger.info(f"Datos cargados desde base de datos (tabla {table_name})")
-                return df
-            except Exception as db_error:
-                logger.error(f"Error cargando desde base de datos: {str(db_error)}")
-                raise FileNotFoundError(f"No se pudo cargar {file_path} ni desde archivo ni desde base de datos")
-        else:
-            logger.error(f"No hay mapeo de tabla para el archivo {file_name}")
-            raise FileNotFoundError(f"Archivo {file_path} no encontrado y sin mapeo a tabla de BD")
     except Exception as e:
-        logger.error(f"Error cargando {file_path}: {str(e)}")
+        logger.error(f"Error cargando desde base de datos (tabla {table_name}): {str(e)}")
         raise
 
 
