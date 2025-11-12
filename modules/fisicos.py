@@ -885,14 +885,14 @@ class FisicosModule:
 
                 cursor = connection.cursor()
 
-                # Para J1, también buscar "Semana_J1" específicamente
+                # Para J1, buscar solo formatos exactos: "J1", "1", "Semana_J1"
                 if jornada_num == "J1":
-                    query_params = [jornada_num, jornada_num_int, f'%{jornada_num_int}%', f'Semana_{jornada_num}']
-                    logger.info(f"Query especial para J1 - buscando también: Semana_{jornada_num}")
+                    query_params = [jornada_num, jornada_num_int, f'Semana_{jornada_num}']
+                    logger.info(f"Query específica para J1 - buscando exactamente: J1, 1, Semana_J1")
                     cursor.execute(f"""
                         SELECT Fecha, Situacion, {tipo_distancia}, Jugador, Minutos_jugados
                         FROM Datos_Fisicos_Entreno
-                        WHERE (Jornada = %s OR Jornada = %s OR Jornada LIKE %s OR Jornada = %s)
+                        WHERE (Jornada = %s OR Jornada = %s OR Jornada = %s)
                           AND Tarea = 'Total'
                           AND Jugador IS NOT NULL
                           AND Jugador != ''
