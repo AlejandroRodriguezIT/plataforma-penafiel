@@ -107,9 +107,28 @@
     async function loadScatterOfensivo() {
         try {
             showLoader();
-            await API.handleImageResponse('scatterOfensivo', API.EstiloJuego.getScatterOfensivo());
+            const response = await API.EstiloJuego.getScatterOfensivo();
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                // Parsear el JSON de Plotly
+                const plotlyData = JSON.parse(data.data);
+
+                // Renderizar con Plotly
+                Plotly.newPlot('scatterOfensivo', plotlyData.data, plotlyData.layout, {
+                    responsive: true,
+                    displayModeBar: true,
+                    modeBarButtonsToRemove: ['select2d', 'lasso2d', 'autoScale2d'],
+                    displaylogo: false
+                });
+            } else {
+                document.getElementById('scatterOfensivo').innerHTML =
+                    `<div class="alert alert-danger">Error: ${data.message}</div>`;
+            }
         } catch (error) {
             console.error('Error:', error);
+            document.getElementById('scatterOfensivo').innerHTML =
+                `<div class="alert alert-danger">Error al cargar la gráfica</div>`;
         } finally {
             hideLoader();
         }
@@ -118,9 +137,28 @@
     async function loadScatterDefensivo() {
         try {
             showLoader();
-            await API.handleImageResponse('scatterDefensivo', API.EstiloJuego.getScatterDefensivo());
+            const response = await API.EstiloJuego.getScatterDefensivo();
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                // Parsear el JSON de Plotly
+                const plotlyData = JSON.parse(data.data);
+
+                // Renderizar con Plotly
+                Plotly.newPlot('scatterDefensivo', plotlyData.data, plotlyData.layout, {
+                    responsive: true,
+                    displayModeBar: true,
+                    modeBarButtonsToRemove: ['select2d', 'lasso2d', 'autoScale2d'],
+                    displaylogo: false
+                });
+            } else {
+                document.getElementById('scatterDefensivo').innerHTML =
+                    `<div class="alert alert-danger">Error: ${data.message}</div>`;
+            }
         } catch (error) {
             console.error('Error:', error);
+            document.getElementById('scatterDefensivo').innerHTML =
+                `<div class="alert alert-danger">Error al cargar la gráfica</div>`;
         } finally {
             hideLoader();
         }

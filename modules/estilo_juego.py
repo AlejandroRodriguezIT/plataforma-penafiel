@@ -9,6 +9,9 @@ from pathlib import Path
 import logging
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 from PIL import Image
+import plotly.graph_objects as go
+import plotly.express as px
+import base64
 
 from config import Config
 from .utils import (
@@ -31,6 +34,29 @@ class EstiloJuegoModule:
         self.archivo_promedios = self.config.ARCHIVO_PROMEDIOS_EQUIPOS
         self.equipo_destacado = self.config.EQUIPO_DESTACADO
         self.escudos_dir = Path("assets/escudos_portugal")
+
+    def _load_image_as_base64(self, team_name):
+        """
+        Carga el escudo de un equipo y lo convierte a base64 para Plotly
+
+        Args:
+            team_name: Nombre del equipo
+
+        Returns:
+            String base64 de la imagen o None si no se encuentra
+        """
+        try:
+            logo_path = self.escudos_dir / f"{team_name}.png"
+            if not logo_path.exists():
+                return None
+
+            with open(logo_path, 'rb') as f:
+                img_bytes = f.read()
+                img_base64 = base64.b64encode(img_bytes).decode()
+                return f"data:image/png;base64,{img_base64}"
+        except Exception as e:
+            logger.debug(f"Error cargando escudo de {team_name}: {e}")
+            return None
 
     def _add_team_logo(self, ax, x, y, team_name, is_highlight=False):
         """
@@ -99,13 +125,13 @@ class EstiloJuegoModule:
 
     def generar_scatter_ofensivo(self) -> dict:
         """
-        Genera scatter plot de eficacia ofensiva
+        Genera scatter plot de eficacia ofensiva usando Plotly para interactividad
 
         Returns:
             Diccionario con los datos de la visualización
         """
         try:
-            logger.info("Generando scatter ofensivo...")
+            logger.info("Generando scatter ofensivo con Plotly...")
 
             # Cargar datos
             df = load_excel_data(self.archivo_promedios)
@@ -124,72 +150,112 @@ class EstiloJuegoModule:
             if data.empty:
                 raise ValueError("No hay datos válidos para calcular las métricas")
 
+            # Añadir columna para destacar Penafiel
+            data['is_penafiel'] = data['Equipo'] == self.equipo_destacado
+
             # Medias
             x_mean = data["x"].mean()
             y_mean = data["y"].mean()
 
-            # Crear figura
-            fig, ax = plt.subplots(figsize=(14, 8))
+            # Crear figura de Plotly
+            fig = go.Figure()
 
-            # Establecer límites
-            def pad_limits(s: pd.Series, frac=0.12):
-                mn, mx = float(s.min()), float(s.max())
-                margin = max(1e-6, (mx - mn) * frac)
-                return (mn - margin, mx + margin)
+            # Añadir líneas de promedio
+            fig.add_hline(y=y_mean, line_dash="dash", line_color="#2ecc71", line_width=3,
+                         annotation_text=f"Media: {y_mean:.2f}%",
+                         annotation_position="left",
+                         annotation_font_size=14,
+                         annotation_font_color="#2ecc71")
 
-            xlim = pad_limits(data["x"], 0.12)
-            ylim = pad_limits(data["y"], 0.18)
-            ax.set_xlim(*xlim)
-            ax.set_ylim(*ylim)
+            fig.add_vline(x=x_mean, line_dash="dash", line_color="#2ecc71", line_width=3,
+                         annotation_text=f"Media: {x_mean:.2f}%",
+                         annotation_position="top",
+                         annotation_font_size=14,
+                         annotation_font_color="#2ecc71")
 
-            # Líneas de media
-            ax.axvline(x_mean, ls="--", lw=1.5, color=self.colors['success'], alpha=0.8)
-            ax.axhline(y_mean, ls="--", lw=1.5, color=self.colors['success'], alpha=0.8)
+            # Añadir scatter plots (Penafiel destacado)
+            data_otros = data[~data['is_penafiel']]
+            data_penafiel = data[data['is_penafiel']]
 
-            ax.text(x_mean, ylim[1], f"Media: {x_mean:.2f}%",
-                    ha="left", va="top", fontsize=9,
-                    color=self.colors['success'], fontweight="bold",
-                    bbox=dict(boxstyle="round,pad=0.25", fc="white", ec="none", alpha=0.7))
+            # Otros equipos
+            fig.add_trace(go.Scatter(
+                x=data_otros['x'],
+                y=data_otros['y'],
+                mode='markers',
+                name='Otros equipos',
+                marker=dict(
+                    size=16,
+                    color='#95a5a6',
+                    opacity=0.7,
+                    line=dict(width=2, color='white')
+                ),
+                text=data_otros['Equipo'],
+                hovertemplate='<b>%{text}</b><br>' +
+                             'Construcción ofensiva: %{x:.2f}%<br>' +
+                             'Finalización: %{y:.2f}%<br>' +
+                             '<extra></extra>'
+            ))
 
-            ax.text(xlim[0], y_mean, f"Media: {y_mean:.2f}%",
-                    ha="left", va="bottom", fontsize=9,
-                    color=self.colors['success'], fontweight="bold",
-                    bbox=dict(boxstyle="round,pad=0.25", fc="white", ec="none", alpha=0.7))
+            # Penafiel
+            if not data_penafiel.empty:
+                fig.add_trace(go.Scatter(
+                    x=data_penafiel['x'],
+                    y=data_penafiel['y'],
+                    mode='markers+text',
+                    name='Penafiel',
+                    marker=dict(
+                        size=20,
+                        color='#9b59b6',
+                        opacity=1.0,
+                        line=dict(width=3, color='white')
+                    ),
+                    text=data_penafiel['Equipo'],
+                    textposition='top center',
+                    textfont=dict(size=14, color='#9b59b6', family='Arial Black'),
+                    hovertemplate='<b>%{text}</b><br>' +
+                                 'Construcción ofensiva: %{x:.2f}%<br>' +
+                                 'Finalización: %{y:.2f}%<br>' +
+                                 '<extra></extra>'
+                ))
 
-            # Pintar escudos
-            for _, row in data.iterrows():
-                cx, cy = row["x"], row["y"]
-                name = row["Equipo"]
-                is_highlight = (name == self.equipo_destacado)
+            # Configuración del layout
+            fig.update_layout(
+                title=dict(
+                    text='COMPARATIVA EFICACIA OFENSIVA EQUIPOS',
+                    font=dict(size=20, family='Arial Black', color='#2c3e50'),
+                    x=0.5,
+                    xanchor='center'
+                ),
+                xaxis=dict(
+                    title=dict(
+                        text='Eficacia construcción ofensiva (%)',
+                        font=dict(size=16, family='Arial', color='#2c3e50')
+                    ),
+                    showgrid=True,
+                    gridwidth=1,
+                    gridcolor='rgba(0,0,0,0.1)',
+                    tickfont=dict(size=13, color='#2c3e50')
+                ),
+                yaxis=dict(
+                    title=dict(
+                        text='Eficacia finalización (%)',
+                        font=dict(size=16, family='Arial', color='#2c3e50')
+                    ),
+                    showgrid=True,
+                    gridwidth=1,
+                    gridcolor='rgba(0,0,0,0.1)',
+                    tickfont=dict(size=13, color='#2c3e50')
+                ),
+                plot_bgcolor='rgba(250,250,250,0.95)',
+                paper_bgcolor='white',
+                hovermode='closest',
+                showlegend=False,
+                height=650,
+                margin=dict(l=80, r=80, t=100, b=80)
+            )
 
-                # Usar escudo en lugar de punto
-                self._add_team_logo(ax, cx, cy, name, is_highlight)
-
-                if is_highlight:
-                    ax.annotate(name, (cx, cy), xytext=(10, 30),
-                               textcoords='offset points',
-                               fontsize=11, fontweight='bold',
-                               bbox=dict(boxstyle='round,pad=0.5',
-                                       fc=self.colors['penafiel'], alpha=0.7,
-                                       edgecolor='white'),
-                               color='white')
-
-            # Configuración de ejes
-            ax.set_xlabel("Eficacia construcción ofensiva (%)",
-                         fontsize=12, fontweight='bold')
-            ax.set_ylabel("Eficacia finalización (%)",
-                         fontsize=12, fontweight='bold')
-            ax.set_title("COMPARATIVA EFICACIA OFENSIVA EQUIPOS",
-                        fontsize=14, fontweight='bold', pad=20, loc='center')
-
-            ax.grid(True, ls=":", lw=0.8, alpha=0.4)
-            ax.set_axisbelow(True)
-
-            for spine in ["top", "right"]:
-                ax.spines[spine].set_visible(False)
-
-            plt.tight_layout()
-            result = fig_to_json(fig)
+            # Convertir a JSON
+            result = fig.to_json()
 
             logger.info("Scatter ofensivo generado exitosamente")
             return {
@@ -204,6 +270,8 @@ class EstiloJuegoModule:
 
         except Exception as e:
             logger.error(f"Error generando scatter ofensivo: {str(e)}")
+            import traceback
+            logger.error(traceback.format_exc())
             return {
                 'status': 'error',
                 'message': str(e)
@@ -211,13 +279,13 @@ class EstiloJuegoModule:
 
     def generar_scatter_defensivo(self) -> dict:
         """
-        Genera scatter plot de eficacia defensiva
+        Genera scatter plot de eficacia defensiva usando Plotly para interactividad
 
         Returns:
             Diccionario con los datos de la visualización
         """
         try:
-            logger.info("Generando scatter defensivo...")
+            logger.info("Generando scatter defensivo con Plotly...")
 
             # Cargar datos
             df = load_excel_data(self.archivo_promedios)
@@ -236,72 +304,112 @@ class EstiloJuegoModule:
             if data.empty:
                 raise ValueError("No hay datos válidos para calcular las métricas")
 
+            # Añadir columna para destacar Penafiel
+            data['is_penafiel'] = data['Equipo'] == self.equipo_destacado
+
             # Medias
             x_mean = data["x"].mean()
             y_mean = data["y"].mean()
 
-            # Crear figura
-            fig, ax = plt.subplots(figsize=(14, 8))
+            # Crear figura de Plotly
+            fig = go.Figure()
 
-            # Establecer límites
-            def pad_limits(s: pd.Series, frac=0.12):
-                mn, mx = float(s.min()), float(s.max())
-                margin = max(1e-6, (mx - mn) * frac)
-                return (mn - margin, mx + margin)
+            # Añadir líneas de promedio
+            fig.add_hline(y=y_mean, line_dash="dash", line_color="#2ecc71", line_width=3,
+                         annotation_text=f"Media: {y_mean:.2f}%",
+                         annotation_position="left",
+                         annotation_font_size=14,
+                         annotation_font_color="#2ecc71")
 
-            xlim = pad_limits(data["x"], 0.12)
-            ylim = pad_limits(data["y"], 0.18)
-            ax.set_xlim(*xlim)
-            ax.set_ylim(*ylim)
+            fig.add_vline(x=x_mean, line_dash="dash", line_color="#2ecc71", line_width=3,
+                         annotation_text=f"Media: {x_mean:.2f}%",
+                         annotation_position="top",
+                         annotation_font_size=14,
+                         annotation_font_color="#2ecc71")
 
-            # Líneas de media
-            ax.axvline(x_mean, ls="--", lw=1.5, color=self.colors['success'], alpha=0.8)
-            ax.axhline(y_mean, ls="--", lw=1.5, color=self.colors['success'], alpha=0.8)
+            # Añadir scatter plots (Penafiel destacado)
+            data_otros = data[~data['is_penafiel']]
+            data_penafiel = data[data['is_penafiel']]
 
-            ax.text(x_mean, ylim[1], f"Media: {x_mean:.2f}%",
-                    ha="left", va="top", fontsize=9,
-                    color=self.colors['success'], fontweight="bold",
-                    bbox=dict(boxstyle="round,pad=0.25", fc="white", ec="none", alpha=0.7))
+            # Otros equipos
+            fig.add_trace(go.Scatter(
+                x=data_otros['x'],
+                y=data_otros['y'],
+                mode='markers',
+                name='Otros equipos',
+                marker=dict(
+                    size=16,
+                    color='#95a5a6',
+                    opacity=0.7,
+                    line=dict(width=2, color='white')
+                ),
+                text=data_otros['Equipo'],
+                hovertemplate='<b>%{text}</b><br>' +
+                             'Contención defensiva: %{x:.2f}%<br>' +
+                             'Evitación: %{y:.2f}%<br>' +
+                             '<extra></extra>'
+            ))
 
-            ax.text(xlim[0], y_mean, f"Media: {y_mean:.2f}%",
-                    ha="left", va="bottom", fontsize=9,
-                    color=self.colors['success'], fontweight="bold",
-                    bbox=dict(boxstyle="round,pad=0.25", fc="white", ec="none", alpha=0.7))
+            # Penafiel
+            if not data_penafiel.empty:
+                fig.add_trace(go.Scatter(
+                    x=data_penafiel['x'],
+                    y=data_penafiel['y'],
+                    mode='markers+text',
+                    name='Penafiel',
+                    marker=dict(
+                        size=20,
+                        color='#9b59b6',
+                        opacity=1.0,
+                        line=dict(width=3, color='white')
+                    ),
+                    text=data_penafiel['Equipo'],
+                    textposition='top center',
+                    textfont=dict(size=14, color='#9b59b6', family='Arial Black'),
+                    hovertemplate='<b>%{text}</b><br>' +
+                                 'Contención defensiva: %{x:.2f}%<br>' +
+                                 'Evitación: %{y:.2f}%<br>' +
+                                 '<extra></extra>'
+                ))
 
-            # Pintar escudos
-            for _, row in data.iterrows():
-                cx, cy = row["x"], row["y"]
-                name = row["Equipo"]
-                is_highlight = (name == self.equipo_destacado)
+            # Configuración del layout
+            fig.update_layout(
+                title=dict(
+                    text='COMPARATIVA EFICACIA DEFENSIVA EQUIPOS',
+                    font=dict(size=20, family='Arial Black', color='#2c3e50'),
+                    x=0.5,
+                    xanchor='center'
+                ),
+                xaxis=dict(
+                    title=dict(
+                        text='Eficacia contención defensiva (%)',
+                        font=dict(size=16, family='Arial', color='#2c3e50')
+                    ),
+                    showgrid=True,
+                    gridwidth=1,
+                    gridcolor='rgba(0,0,0,0.1)',
+                    tickfont=dict(size=13, color='#2c3e50')
+                ),
+                yaxis=dict(
+                    title=dict(
+                        text='Eficacia evitación (%)',
+                        font=dict(size=16, family='Arial', color='#2c3e50')
+                    ),
+                    showgrid=True,
+                    gridwidth=1,
+                    gridcolor='rgba(0,0,0,0.1)',
+                    tickfont=dict(size=13, color='#2c3e50')
+                ),
+                plot_bgcolor='rgba(250,250,250,0.95)',
+                paper_bgcolor='white',
+                hovermode='closest',
+                showlegend=False,
+                height=650,
+                margin=dict(l=80, r=80, t=100, b=80)
+            )
 
-                # Usar escudo en lugar de punto
-                self._add_team_logo(ax, cx, cy, name, is_highlight)
-
-                if is_highlight:
-                    ax.annotate(name, (cx, cy), xytext=(10, 30),
-                               textcoords='offset points',
-                               fontsize=11, fontweight='bold',
-                               bbox=dict(boxstyle='round,pad=0.5',
-                                       fc=self.colors['penafiel'], alpha=0.7,
-                                       edgecolor='white'),
-                               color='white')
-
-            # Configuración de ejes
-            ax.set_xlabel("Eficacia contención defensiva (%)",
-                         fontsize=12, fontweight='bold')
-            ax.set_ylabel("Eficacia evitación (%)",
-                         fontsize=12, fontweight='bold')
-            ax.set_title("COMPARATIVA EFICACIA DEFENSIVA EQUIPOS",
-                        fontsize=14, fontweight='bold', pad=20, loc='center')
-
-            ax.grid(True, ls=":", lw=0.8, alpha=0.4)
-            ax.set_axisbelow(True)
-
-            for spine in ["top", "right"]:
-                ax.spines[spine].set_visible(False)
-
-            plt.tight_layout()
-            result = fig_to_json(fig)
+            # Convertir a JSON
+            result = fig.to_json()
 
             logger.info("Scatter defensivo generado exitosamente")
             return {
@@ -316,6 +424,8 @@ class EstiloJuegoModule:
 
         except Exception as e:
             logger.error(f"Error generando scatter defensivo: {str(e)}")
+            import traceback
+            logger.error(traceback.format_exc())
             return {
                 'status': 'error',
                 'message': str(e)
