@@ -70,11 +70,17 @@ def load_from_database(table_name: str) -> pd.DataFrame:
             # Mostrar valores únicos para debug
             logger.info(f"Valores únicos en Jornada antes de conversión: {df['Jornada'].unique()[:10]}")
 
-            # Intentar extraer solo números de la columna Jornada
-            df['Jornada'] = df['Jornada'].astype(str).str.extract(r'(\d+)', expand=False)
-            df['Jornada'] = pd.to_numeric(df['Jornada'], errors='coerce')
-
-            logger.info(f"Valores únicos en Jornada después de conversión: {df['Jornada'].unique()[:10]}")
+            # Solo convertir a números para tablas de datos físicos
+            # Para tabla Resultado, mantener formato "J1", "J2", etc.
+            if table_name not in ['Resultado']:
+                # Intentar extraer solo números de la columna Jornada
+                df['Jornada'] = df['Jornada'].astype(str).str.extract(r'(\d+)', expand=False)
+                df['Jornada'] = pd.to_numeric(df['Jornada'], errors='coerce')
+                logger.info(f"Valores únicos en Jornada después de conversión: {df['Jornada'].unique()[:10]}")
+            else:
+                # Para tabla Resultado, normalizar formato pero mantener como string "J1", "J2", etc.
+                df['Jornada'] = df['Jornada'].astype(str).str.strip().str.upper()
+                logger.info(f"Jornadas en tabla Resultado (sin conversión): {df['Jornada'].unique()[:10]}")
 
         # Convertir columnas numéricas comunes
         numeric_columns = [
