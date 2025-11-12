@@ -866,24 +866,49 @@ class FisicosModule:
 
                 # Consultar entrenamientos de la jornada seleccionada usando cursor
                 # Necesitamos también Minutos_jugados para filtrar jugadores
+                # Buscar por múltiples formatos posibles: "J1", "1", o cualquier formato que contenga el número
+                logger.info(f"Buscando entrenamientos para jornada: {jornada_num} (int: {jornada_num_int})")
+
                 cursor = connection.cursor()
                 cursor.execute(f"""
                     SELECT Fecha, Situacion, {tipo_distancia}, Jugador, Minutos_jugados
                     FROM Datos_Fisicos_Entreno
-                    WHERE Jornada = %s
+                    WHERE (Jornada = %s OR Jornada = %s OR Jornada LIKE %s)
                       AND Tarea = 'Total'
                       AND Jugador IS NOT NULL
                       AND Jugador != ''
                     ORDER BY Fecha
-                """, [jornada_num])
+                """, [jornada_num, jornada_num_int, f'%{jornada_num_int}%'])
 
                 resultados_entrenos = cursor.fetchall()
+                logger.info(f"Resultados de entrenamientos obtenidos: {len(resultados_entrenos)} filas")
+
+                # Si no hay resultados, diagnosticar el problema
+                if not resultados_entrenos:
+                    cursor2 = connection.cursor()
+                    cursor2.execute("SELECT DISTINCT Jornada FROM Datos_Fisicos_Entreno ORDER BY Jornada LIMIT 20")
+                    jornadas_disponibles_entreno = [row['Jornada'] for row in cursor2.fetchall()]
+                    logger.warning(f"No se encontraron entrenamientos para {jornada_num}. Jornadas disponibles en Datos_Fisicos_Entreno: {jornadas_disponibles_entreno}")
+
+                    # Ver qué datos hay para esta jornada sin filtros
+                    cursor2.execute("""
+                        SELECT Jornada, Tarea, COUNT(*) as count
+                        FROM Datos_Fisicos_Entreno
+                        WHERE Jornada LIKE %s
+                        GROUP BY Jornada, Tarea
+                    """, [f'%{jornada_num_int}%'])
+                    datos_jornada = cursor2.fetchall()
+                    logger.warning(f"Datos en Datos_Fisicos_Entreno para jornada {jornada_num_int}: {datos_jornada}")
+                    cursor2.close()
+
                 cursor.close()
 
                 # Crear DataFrame desde los resultados del cursor (DictCursor)
                 if resultados_entrenos:
                     df_entrenos = pd.DataFrame(resultados_entrenos)
-                    logger.info(f"Entrenamientos encontrados: {len(df_entrenos)}")
+                    logger.info(f"DataFrame de entrenamientos creado con {len(df_entrenos)} registros")
+                    logger.info(f"Columnas: {df_entrenos.columns.tolist()}")
+                    logger.info(f"Situaciones únicas: {df_entrenos['Situacion'].unique() if 'Situacion' in df_entrenos.columns else 'N/A'}")
                 else:
                     df_entrenos = pd.DataFrame()
                     logger.warning(f"No se encontraron entrenamientos para {jornada_num}")
@@ -896,15 +921,17 @@ class FisicosModule:
                 rival_partido_previo = "Rival desconocido"
                 if jornada_prev_num and mostrar_partido_previo:
                     logger.info(f"Buscando partido previo: {jornada_prev_num}")
+                    # Extraer número de jornada previa para búsqueda flexible
+                    jornada_prev_num_int = int(jornada_prev_num.replace('J', ''))
                     cursor = connection.cursor()
                     cursor.execute(f"""
                         SELECT Fecha, Distancia_total, Distancia_HSR, Distancia_Sprint, Jugador, Tarea, Minutos_jugados, Partido
                         FROM Datos_Fisicos_Partido
-                        WHERE Jornada = %s
+                        WHERE (Jornada = %s OR Jornada = %s OR Jornada LIKE %s)
                           AND Tarea IN ('1ª parte', '2ª parte', '1 ª parte', '2 ª parte')
                           AND Jugador IS NOT NULL
                           AND Jugador != ''
-                    """, [jornada_prev_num])
+                    """, [jornada_prev_num, jornada_prev_num_int, f'%{jornada_prev_num_int}%'])
 
                     resultados_partido_previo = cursor.fetchall()
                     logger.info(f"Resultados encontrados para {jornada_prev_num}: {len(resultados_partido_previo)} filas")
