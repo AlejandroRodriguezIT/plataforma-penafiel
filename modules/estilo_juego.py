@@ -47,7 +47,7 @@ class EstiloJuegoModule:
             logo_path = self.escudos_dir / f"{team_name}.png"
 
             if not logo_path.exists():
-                logger.warning(f"Escudo no encontrado para {team_name}: {logo_path}")
+                logger.debug(f"Escudo no encontrado para {team_name}: {logo_path}, usando punto de color")
                 # Dibujar punto si no se encuentra el escudo
                 color = self.colors['penafiel'] if is_highlight else self.colors['info']
                 size = 200 if is_highlight else 100

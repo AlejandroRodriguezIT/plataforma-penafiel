@@ -134,7 +134,7 @@ class FisicosModule:
                 raise ValueError("No hay filas con Tarea 1ª/2ª parte")
 
             # 3. Asegurar columnas numéricas
-            numeric_cols = ['Minutos_jugados', 'Distancia_Total', 'Distancia_Sprint',
+            numeric_cols = ['Minutos_jugados', 'Distancia_total', 'Distancia_Sprint',
                           'Distancia_HSR', 'Velocidad_Maxima']
             for c in numeric_cols:
                 if c in df_p_f.columns:
@@ -151,7 +151,7 @@ class FisicosModule:
                 df_p_f.groupby(["Jornada", "Partido", "Jugador"], as_index=False)
                 .agg({
                     'Minutos_jugados': 'sum',
-                    'Distancia_Total': 'sum',
+                    'Distancia_total': 'sum',
                     'Distancia_HSR': 'sum',
                     'Distancia_Sprint': 'sum'
                 })
@@ -168,7 +168,7 @@ class FisicosModule:
 
             # 8. Estandarizar a 94 minutos
             factor_estandarizacion = 94.0
-            df_jugadores["Distancia_Total_Std"] = (df_jugadores["Distancia_Total"] / df_jugadores["Minutos_jugados"]) * factor_estandarizacion
+            df_jugadores["Distancia_total_Std"] = (df_jugadores["Distancia_total"] / df_jugadores["Minutos_jugados"]) * factor_estandarizacion
             df_jugadores["Distancia_HSR_Std"] = (df_jugadores["Distancia_HSR"] / df_jugadores["Minutos_jugados"]) * factor_estandarizacion
             df_jugadores["Distancia_Sprint_Std"] = (df_jugadores["Distancia_Sprint"] / df_jugadores["Minutos_jugados"]) * factor_estandarizacion
 
@@ -176,13 +176,13 @@ class FisicosModule:
             df_por_partido = (
                 df_jugadores.groupby(["Jornada", "Partido"], as_index=False)
                 .agg({
-                    'Distancia_Total_Std': 'mean',
+                    'Distancia_total_Std': 'mean',
                     'Distancia_HSR_Std': 'mean',
                     'Distancia_Sprint_Std': 'mean',
                     'Jugador': 'count'  # número de jugadores
                 })
                 .rename(columns={
-                    'Distancia_Total_Std': 'Distancia_Total',
+                    'Distancia_total_Std': 'Distancia_total',
                     'Distancia_HSR_Std': 'Distancia_HSR',
                     'Distancia_Sprint_Std': 'Distancia_Sprint',
                     'Jugador': 'num_jugadores'
@@ -236,19 +236,19 @@ class FisicosModule:
             df_plot["color"] = df_plot["Resultado"].map(color_map).fillna("#9e9e9e")
 
             # 13. Asegurar que las columnas de distancia son numéricas
-            df_plot["Distancia_Total"] = pd.to_numeric(df_plot["Distancia_Total"], errors='coerce')
+            df_plot["Distancia_total"] = pd.to_numeric(df_plot["Distancia_total"], errors='coerce')
             df_plot["Distancia_HSR"] = pd.to_numeric(df_plot["Distancia_HSR"], errors='coerce')
             df_plot["Distancia_Sprint"] = pd.to_numeric(df_plot["Distancia_Sprint"], errors='coerce')
 
             # 14. Calcular promedios globales
-            promedio_total = float(df_plot["Distancia_Total"].mean())
+            promedio_total = float(df_plot["Distancia_total"].mean())
             promedio_hsr = float(df_plot["Distancia_HSR"].mean())
             promedio_sprint = float(df_plot["Distancia_Sprint"].mean())
 
             # 15. Preparar datos para JSON
             jornadas = df_plot["Jornada"].tolist()
             codigos = df_plot["Codigo"].fillna("").tolist()
-            distancia_total = df_plot["Distancia_Total"].round(0).tolist()
+            distancia_total = df_plot["Distancia_total"].round(0).tolist()
             distancia_hsr = df_plot["Distancia_HSR"].round(0).tolist()
             distancia_sprint = df_plot["Distancia_Sprint"].round(0).tolist()
             colores = df_plot["color"].tolist()
@@ -388,13 +388,13 @@ class FisicosModule:
                 raise ValueError(f"No hay datos para el partido: {partido}")
 
             # 4. Convertir columnas a numérico
-            for col in ['Minutos_jugados', 'Distancia_Total', 'Distancia_HSR', 'Distancia_Sprint']:
+            for col in ['Minutos_jugados', 'Distancia_total', 'Distancia_HSR', 'Distancia_Sprint']:
                 df_partido[col] = pd.to_numeric(df_partido[col], errors='coerce')
 
             # 5. Agrupar por jugador
             df_agg = df_partido.groupby('Jugador', as_index=False).agg({
                 'Minutos_jugados': 'sum',
-                'Distancia_Total': 'sum',
+                'Distancia_total': 'sum',
                 'Distancia_HSR': 'sum',
                 'Distancia_Sprint': 'sum'
             })
@@ -406,7 +406,7 @@ class FisicosModule:
                 raise ValueError(f"No hay jugadores con más de 70 minutos en el partido: {partido}")
 
             # 7. Calcular medias (usando distancias reales)
-            mean_x = df_agg['Distancia_Total'].mean()
+            mean_x = df_agg['Distancia_total'].mean()
             mean_y = df_agg['Distancia_HSR'].mean()
 
             # 8. Preparar datos para enviar al frontend
@@ -415,7 +415,7 @@ class FisicosModule:
                 jugadores_data.append({
                     'jugador': row['Jugador'],
                     'minutos_jugados': int(row['Minutos_jugados']),
-                    'distancia_total': int(row['Distancia_Total']),
+                    'distancia_total': int(row['Distancia_total']),
                     'distancia_hsr': int(row['Distancia_HSR']),
                     'distancia_sprint': int(row['Distancia_Sprint'])
                 })
@@ -749,13 +749,14 @@ class FisicosModule:
                     # Crear label del microciclo (solo jornada y rival, sin fechas)
                     label = f"{jornada_num} - {rival}"
 
+                    # Convertir tipos numpy a tipos Python para JSON serialization
                     microciclos.append({
-                        'jornada': jornada,
-                        'jornada_num': jornada_num,
-                        'rival': rival,
+                        'jornada': int(jornada) if pd.notna(jornada) else None,
+                        'jornada_num': int(jornada_num) if isinstance(jornada_num, (int, np.integer)) else str(jornada_num),
+                        'rival': str(rival),
                         'fecha_inicio': fecha_inicio_str,
                         'fecha_fin': fecha_fin_str,
-                        'fecha_partido': fecha_partido,
+                        'fecha_partido': fecha_partido.isoformat() if fecha_partido else None,
                         'label': label
                     })
 
