@@ -242,8 +242,7 @@
     async function loadScatterOfensivo() {
         try {
             showLoader();
-            const response = await API.EstiloJuego.getScatterOfensivo();
-            const data = await response.json();
+            const data = await API.EstiloJuego.getScatterOfensivo();
 
             if (data.status === 'success') {
                 // Parsear el JSON de Plotly
@@ -272,8 +271,7 @@
     async function loadScatterDefensivo() {
         try {
             showLoader();
-            const response = await API.EstiloJuego.getScatterDefensivo();
-            const data = await response.json();
+            const data = await API.EstiloJuego.getScatterDefensivo();
 
             if (data.status === 'success') {
                 // Parsear el JSON de Plotly
