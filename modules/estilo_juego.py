@@ -221,37 +221,37 @@ class EstiloJuegoModule:
             # Configuración del layout
             fig.update_layout(
                 title=dict(
-                    text='COMPARATIVA EFICACIA OFENSIVA EQUIPOS',
-                    font=dict(size=20, family='Arial Black', color='#2c3e50'),
+                    text='COMPARATIVA EFICACIA OFENSIVA',
+                    font=dict(size=16, family='Arial Black', color='#2c3e50'),
                     x=0.5,
                     xanchor='center'
                 ),
                 xaxis=dict(
                     title=dict(
                         text='Eficacia construcción ofensiva (%)',
-                        font=dict(size=16, family='Arial', color='#2c3e50')
+                        font=dict(size=12, family='Arial', color='#2c3e50')
                     ),
                     showgrid=True,
                     gridwidth=1,
                     gridcolor='rgba(0,0,0,0.1)',
-                    tickfont=dict(size=13, color='#2c3e50')
+                    tickfont=dict(size=11, color='#2c3e50')
                 ),
                 yaxis=dict(
                     title=dict(
                         text='Eficacia finalización (%)',
-                        font=dict(size=16, family='Arial', color='#2c3e50')
+                        font=dict(size=12, family='Arial', color='#2c3e50')
                     ),
                     showgrid=True,
                     gridwidth=1,
                     gridcolor='rgba(0,0,0,0.1)',
-                    tickfont=dict(size=13, color='#2c3e50')
+                    tickfont=dict(size=11, color='#2c3e50')
                 ),
                 plot_bgcolor='rgba(250,250,250,0.95)',
                 paper_bgcolor='white',
                 hovermode='closest',
                 showlegend=False,
-                height=650,
-                margin=dict(l=80, r=80, t=100, b=80)
+                height=450,
+                margin=dict(l=60, r=40, t=60, b=60)
             )
 
             # Convertir a JSON
@@ -375,37 +375,37 @@ class EstiloJuegoModule:
             # Configuración del layout
             fig.update_layout(
                 title=dict(
-                    text='COMPARATIVA EFICACIA DEFENSIVA EQUIPOS',
-                    font=dict(size=20, family='Arial Black', color='#2c3e50'),
+                    text='COMPARATIVA EFICACIA DEFENSIVA',
+                    font=dict(size=16, family='Arial Black', color='#2c3e50'),
                     x=0.5,
                     xanchor='center'
                 ),
                 xaxis=dict(
                     title=dict(
                         text='Eficacia contención defensiva (%)',
-                        font=dict(size=16, family='Arial', color='#2c3e50')
+                        font=dict(size=12, family='Arial', color='#2c3e50')
                     ),
                     showgrid=True,
                     gridwidth=1,
                     gridcolor='rgba(0,0,0,0.1)',
-                    tickfont=dict(size=13, color='#2c3e50')
+                    tickfont=dict(size=11, color='#2c3e50')
                 ),
                 yaxis=dict(
                     title=dict(
                         text='Eficacia evitación (%)',
-                        font=dict(size=16, family='Arial', color='#2c3e50')
+                        font=dict(size=12, family='Arial', color='#2c3e50')
                     ),
                     showgrid=True,
                     gridwidth=1,
                     gridcolor='rgba(0,0,0,0.1)',
-                    tickfont=dict(size=13, color='#2c3e50')
+                    tickfont=dict(size=11, color='#2c3e50')
                 ),
                 plot_bgcolor='rgba(250,250,250,0.95)',
                 paper_bgcolor='white',
                 hovermode='closest',
                 showlegend=False,
-                height=650,
-                margin=dict(l=80, r=80, t=100, b=80)
+                height=450,
+                margin=dict(l=60, r=40, t=60, b=60)
             )
 
             # Convertir a JSON
