@@ -185,7 +185,7 @@ class EstiloJuegoModule:
                 name='Otros equipos',
                 marker=dict(
                     size=0.1,
-                    color='transparent',
+                    color='rgba(0,0,0,0)',
                     opacity=0
                 ),
                 text=data_otros['Equipo'],
@@ -357,7 +357,7 @@ class EstiloJuegoModule:
                 name='Otros equipos',
                 marker=dict(
                     size=0.1,
-                    color='transparent',
+                    color='rgba(0,0,0,0)',
                     opacity=0
                 ),
                 text=data_otros['Equipo'],
