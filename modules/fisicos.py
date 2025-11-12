@@ -884,15 +884,31 @@ class FisicosModule:
                 logger.info(f"Buscando entrenamientos para jornada: {jornada_num} (int: {jornada_num_int})")
 
                 cursor = connection.cursor()
-                cursor.execute(f"""
-                    SELECT Fecha, Situacion, {tipo_distancia}, Jugador, Minutos_jugados
-                    FROM Datos_Fisicos_Entreno
-                    WHERE (Jornada = %s OR Jornada = %s OR Jornada LIKE %s)
-                      AND Tarea = 'Total'
-                      AND Jugador IS NOT NULL
-                      AND Jugador != ''
-                    ORDER BY Fecha
-                """, [jornada_num, jornada_num_int, f'%{jornada_num_int}%'])
+
+                # Para J1, también buscar "Semana_J1" específicamente
+                if jornada_num == "J1":
+                    query_params = [jornada_num, jornada_num_int, f'%{jornada_num_int}%', f'Semana_{jornada_num}']
+                    logger.info(f"Query especial para J1 - buscando también: Semana_{jornada_num}")
+                    cursor.execute(f"""
+                        SELECT Fecha, Situacion, {tipo_distancia}, Jugador, Minutos_jugados
+                        FROM Datos_Fisicos_Entreno
+                        WHERE (Jornada = %s OR Jornada = %s OR Jornada LIKE %s OR Jornada = %s)
+                          AND Tarea = 'Total'
+                          AND Jugador IS NOT NULL
+                          AND Jugador != ''
+                        ORDER BY Fecha
+                    """, query_params)
+                else:
+                    # Para otras jornadas, usar la lógica existente
+                    cursor.execute(f"""
+                        SELECT Fecha, Situacion, {tipo_distancia}, Jugador, Minutos_jugados
+                        FROM Datos_Fisicos_Entreno
+                        WHERE (Jornada = %s OR Jornada = %s OR Jornada LIKE %s)
+                          AND Tarea = 'Total'
+                          AND Jugador IS NOT NULL
+                          AND Jugador != ''
+                        ORDER BY Fecha
+                    """, [jornada_num, jornada_num_int, f'%{jornada_num_int}%'])
 
                 resultados_entrenos = cursor.fetchall()
                 logger.info(f"Resultados de entrenamientos obtenidos: {len(resultados_entrenos)} filas")
