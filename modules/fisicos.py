@@ -194,6 +194,13 @@ class FisicosModule:
             # 10. Obtener resultados desde tabla Resultados
             df_r = self._obtener_resultados()
 
+            logger.info(f"Resultados obtenidos: {len(df_r)} filas")
+            if not df_r.empty:
+                logger.info(f"Columnas de resultados: {df_r.columns.tolist()}")
+                logger.info(f"Primeras filas de resultados:\n{df_r.head()}")
+                logger.info(f"Jornadas en resultados: {df_r['Jornada'].unique().tolist()}")
+                logger.info(f"Jornadas en partidos: {df_por_partido['Jornada'].unique().tolist()}")
+
             if df_r.empty:
                 logger.warning("No se encontraron resultados, usando colores por defecto")
                 df_plot = df_por_partido.copy()
@@ -206,6 +213,9 @@ class FisicosModule:
                     on="Jornada",
                     how="left"
                 )
+                logger.info(f"Después del merge: {len(df_plot)} filas")
+                logger.info(f"Valores de Resultado después del merge: {df_plot['Resultado'].unique().tolist()}")
+                logger.info(f"Filas con Resultado NaN: {df_plot['Resultado'].isna().sum()}")
 
             # 11. Ordenar por jornada
             df_plot["J_orden"] = df_plot["Jornada"].str.extract(r'(\d+)', expand=False).astype(int)
@@ -232,8 +242,12 @@ class FisicosModule:
                 "E": "#FFC107",   # amarillo - Empate
                 "D": "#DC143C",   # rojo - Derrota
             }
+            logger.info(f"Valores de Resultado ANTES de normalizar: {df_plot['Resultado'].unique().tolist()}")
             df_plot["Resultado"] = df_plot["Resultado"].astype(str).str.strip().str.upper()
+            logger.info(f"Valores de Resultado DESPUÉS de normalizar: {df_plot['Resultado'].unique().tolist()}")
             df_plot["color"] = df_plot["Resultado"].map(color_map).fillna("#9e9e9e")
+            logger.info(f"Colores asignados: {df_plot['color'].unique().tolist()}")
+            logger.info(f"Distribución de colores:\n{df_plot['color'].value_counts()}")
 
             # 13. Asegurar que las columnas de distancia son numéricas
             df_plot["Distancia_total"] = pd.to_numeric(df_plot["Distancia_total"], errors='coerce')
