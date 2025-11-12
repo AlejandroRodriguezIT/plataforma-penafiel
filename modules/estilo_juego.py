@@ -177,17 +177,16 @@ class EstiloJuegoModule:
             data_otros = data[~data['is_penafiel']]
             data_penafiel = data[data['is_penafiel']]
 
-            # Otros equipos
+            # Otros equipos (marcadores invisibles para hover)
             fig.add_trace(go.Scatter(
                 x=data_otros['x'],
                 y=data_otros['y'],
                 mode='markers',
                 name='Otros equipos',
                 marker=dict(
-                    size=16,
-                    color='#95a5a6',
-                    opacity=0.7,
-                    line=dict(width=2, color='white')
+                    size=0.1,
+                    color='transparent',
+                    opacity=0
                 ),
                 text=data_otros['Equipo'],
                 hovertemplate='<b>%{text}</b><br>' +
@@ -196,22 +195,19 @@ class EstiloJuegoModule:
                              '<extra></extra>'
             ))
 
-            # Penafiel
+            # Penafiel (marcador invisible para hover)
             if not data_penafiel.empty:
                 fig.add_trace(go.Scatter(
                     x=data_penafiel['x'],
                     y=data_penafiel['y'],
-                    mode='markers+text',
+                    mode='markers',
                     name='Penafiel',
                     marker=dict(
-                        size=20,
-                        color='#9b59b6',
-                        opacity=1.0,
-                        line=dict(width=3, color='white')
+                        size=0.1,
+                        color='transparent',
+                        opacity=0
                     ),
                     text=data_penafiel['Equipo'],
-                    textposition='top center',
-                    textfont=dict(size=14, color='#9b59b6', family='Arial Black'),
                     hovertemplate='<b>%{text}</b><br>' +
                                  'Construcción ofensiva: %{x:.2f}%<br>' +
                                  'Finalización: %{y:.2f}%<br>' +
@@ -253,6 +249,31 @@ class EstiloJuegoModule:
                 height=450,
                 margin=dict(l=60, r=40, t=60, b=60)
             )
+
+            # Añadir escudos como imágenes en cada punto
+            images = []
+            for idx, row in data.iterrows():
+                equipo = row['Equipo']
+                x_val = row['x']
+                y_val = row['y']
+
+                # Tamaño del escudo (ajustar según rango de datos)
+                x_range = data['x'].max() - data['x'].min()
+                y_range = data['y'].max() - data['y'].min()
+                size_x = x_range * 0.05  # 5% del rango
+                size_y = y_range * 0.05
+
+                images.append(dict(
+                    source=f"/assets/escudos_portugal/{equipo}.png",
+                    xref="x", yref="y",
+                    x=x_val, y=y_val,
+                    sizex=size_x, sizey=size_y,
+                    xanchor="center", yanchor="middle",
+                    opacity=1.0 if row['is_penafiel'] else 0.7,
+                    layer="above"
+                ))
+
+            fig.update_layout(images=images)
 
             # Convertir a JSON
             result = fig.to_json()
@@ -331,17 +352,16 @@ class EstiloJuegoModule:
             data_otros = data[~data['is_penafiel']]
             data_penafiel = data[data['is_penafiel']]
 
-            # Otros equipos
+            # Otros equipos (marcadores invisibles para hover)
             fig.add_trace(go.Scatter(
                 x=data_otros['x'],
                 y=data_otros['y'],
                 mode='markers',
                 name='Otros equipos',
                 marker=dict(
-                    size=16,
-                    color='#95a5a6',
-                    opacity=0.7,
-                    line=dict(width=2, color='white')
+                    size=0.1,
+                    color='transparent',
+                    opacity=0
                 ),
                 text=data_otros['Equipo'],
                 hovertemplate='<b>%{text}</b><br>' +
@@ -350,22 +370,19 @@ class EstiloJuegoModule:
                              '<extra></extra>'
             ))
 
-            # Penafiel
+            # Penafiel (marcador invisible para hover)
             if not data_penafiel.empty:
                 fig.add_trace(go.Scatter(
                     x=data_penafiel['x'],
                     y=data_penafiel['y'],
-                    mode='markers+text',
+                    mode='markers',
                     name='Penafiel',
                     marker=dict(
-                        size=20,
-                        color='#9b59b6',
-                        opacity=1.0,
-                        line=dict(width=3, color='white')
+                        size=0.1,
+                        color='transparent',
+                        opacity=0
                     ),
                     text=data_penafiel['Equipo'],
-                    textposition='top center',
-                    textfont=dict(size=14, color='#9b59b6', family='Arial Black'),
                     hovertemplate='<b>%{text}</b><br>' +
                                  'Contención defensiva: %{x:.2f}%<br>' +
                                  'Evitación: %{y:.2f}%<br>' +
@@ -407,6 +424,31 @@ class EstiloJuegoModule:
                 height=450,
                 margin=dict(l=60, r=40, t=60, b=60)
             )
+
+            # Añadir escudos como imágenes en cada punto
+            images = []
+            for idx, row in data.iterrows():
+                equipo = row['Equipo']
+                x_val = row['x']
+                y_val = row['y']
+
+                # Tamaño del escudo (ajustar según rango de datos)
+                x_range = data['x'].max() - data['x'].min()
+                y_range = data['y'].max() - data['y'].min()
+                size_x = x_range * 0.05  # 5% del rango
+                size_y = y_range * 0.05
+
+                images.append(dict(
+                    source=f"/assets/escudos_portugal/{equipo}.png",
+                    xref="x", yref="y",
+                    x=x_val, y=y_val,
+                    sizex=size_x, sizey=size_y,
+                    xanchor="center", yanchor="middle",
+                    opacity=1.0 if row['is_penafiel'] else 0.7,
+                    layer="above"
+                ))
+
+            fig.update_layout(images=images)
 
             # Convertir a JSON
             result = fig.to_json()

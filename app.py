@@ -307,6 +307,15 @@ def health_check():
     })
 
 
+# ==================== ARCHIVOS ESTÁTICOS ====================
+
+@app.route('/assets/<path:filename>')
+def serve_assets(filename):
+    """Servir archivos desde la carpeta assets"""
+    from flask import send_from_directory
+    return send_from_directory('assets', filename)
+
+
 # ==================== MANEJO DE ERRORES ====================
 
 @app.errorhandler(404)
