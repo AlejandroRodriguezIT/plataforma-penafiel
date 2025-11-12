@@ -747,7 +747,7 @@ class FisicosModule:
                     fecha_fin_str = pd.to_datetime(fecha_fin).strftime('%d/%m/%Y')
 
                     # Crear label del microciclo (solo jornada y rival, sin fechas)
-                    label = f"{jornada_num} - {rival}"
+                    label = f"J{jornada_num} - {rival}"
 
                     # Convertir tipos numpy a tipos Python para JSON serialization
                     microciclos.append({
@@ -817,8 +817,20 @@ class FisicosModule:
                 raise ValueError("No se pudo conectar a la base de datos")
 
             try:
-                # Obtener número de jornada
-                jornada_num = jornada.replace('Semana_', '')
+                # Obtener número de jornada - soportar múltiples formatos
+                # Puede recibir: "1", "J1", "Semana_J1"
+                jornada_str = str(jornada).strip()
+
+                # Remover prefijo "Semana_" si existe
+                jornada_str = jornada_str.replace('Semana_', '')
+
+                # Si no empieza con "J", añadirlo
+                if not jornada_str.startswith('J'):
+                    jornada_num = f"J{jornada_str}"
+                else:
+                    jornada_num = jornada_str
+
+                # Extraer número entero
                 jornada_num_int = int(jornada_num.replace('J', ''))
 
                 # Configuración especial para microciclos con intervalos largos o aplazamientos
@@ -863,7 +875,7 @@ class FisicosModule:
                       AND Jugador IS NOT NULL
                       AND Jugador != ''
                     ORDER BY Fecha
-                """, [jornada])
+                """, [jornada_num])
 
                 resultados_entrenos = cursor.fetchall()
                 cursor.close()
@@ -874,7 +886,7 @@ class FisicosModule:
                     logger.info(f"Entrenamientos encontrados: {len(df_entrenos)}")
                 else:
                     df_entrenos = pd.DataFrame()
-                    logger.warning(f"No se encontraron entrenamientos para {jornada}")
+                    logger.warning(f"No se encontraron entrenamientos para {jornada_num}")
 
                 # Obtener partido previo (si existe y si se debe mostrar)
                 # Calcular promedio de distancia de jugadores que jugaron > 70 minutos, estandarizada a 94 min
