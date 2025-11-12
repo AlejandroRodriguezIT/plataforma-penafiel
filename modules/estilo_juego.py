@@ -252,22 +252,19 @@ class EstiloJuegoModule:
 
             # Añadir escudos como imágenes en cada punto
             images = []
+            # Tamaño fijo uniforme para todos los escudos
+            escudo_size = 1.5  # Tamaño en unidades del eje
+
             for idx, row in data.iterrows():
                 equipo = row['Equipo']
                 x_val = row['x']
                 y_val = row['y']
 
-                # Tamaño del escudo (ajustar según rango de datos)
-                x_range = data['x'].max() - data['x'].min()
-                y_range = data['y'].max() - data['y'].min()
-                size_x = x_range * 0.05  # 5% del rango
-                size_y = y_range * 0.05
-
                 images.append(dict(
                     source=f"/assets/escudos_portugal/{equipo}.png",
                     xref="x", yref="y",
                     x=x_val, y=y_val,
-                    sizex=size_x, sizey=size_y,
+                    sizex=escudo_size, sizey=escudo_size,
                     xanchor="center", yanchor="middle",
                     opacity=1.0 if row['is_penafiel'] else 0.7,
                     layer="above"
@@ -427,22 +424,19 @@ class EstiloJuegoModule:
 
             # Añadir escudos como imágenes en cada punto
             images = []
+            # Tamaño fijo uniforme para todos los escudos
+            escudo_size = 1.5  # Tamaño en unidades del eje
+
             for idx, row in data.iterrows():
                 equipo = row['Equipo']
                 x_val = row['x']
                 y_val = row['y']
 
-                # Tamaño del escudo (ajustar según rango de datos)
-                x_range = data['x'].max() - data['x'].min()
-                y_range = data['y'].max() - data['y'].min()
-                size_x = x_range * 0.05  # 5% del rango
-                size_y = y_range * 0.05
-
                 images.append(dict(
                     source=f"/assets/escudos_portugal/{equipo}.png",
                     xref="x", yref="y",
                     x=x_val, y=y_val,
-                    sizex=size_x, sizey=size_y,
+                    sizex=escudo_size, sizey=escudo_size,
                     xanchor="center", yanchor="middle",
                     opacity=1.0 if row['is_penafiel'] else 0.7,
                     layer="above"
